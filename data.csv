@@ -1,0 +1,150 @@
+municipality,id,name,votes,elected,age,party
+frederiksberg,3160,Michael Vindfeldt,6550,True,43,A
+frederiksberg,3161,Sine Heltberg,509,True,49,A
+frederiksberg,23176,Malte Mathies Løcke,406,True,30,A
+frederiksberg,6777607,Christina Sylvest-noer,339,True,36,A
+frederiksberg,121219436,Thomas Frank,129,False,48,A
+frederiksberg,121219434,Sofie Kümpel,193,True,28,A
+frederiksberg,6783779,Kristoffer Appel,253,True,35,A
+frederiksberg,121219429,Kim Christiansen,173,False,66,A
+frederiksberg,121219433,Rasmus Edelberg,71,False,51,A
+frederiksberg,121219425,Britt Dam,172,False,39,A
+frederiksberg,121219946,Bjarne Henriksen,253,True,66,A
+frederiksberg,121219435,Susanne Nørlund Munk,125,False,-1,A
+frederiksberg,121219428,Janek Balling Majewicz,87,False,-1,A
+frederiksberg,6648944,Vibeke Westh,98,False,62,A
+frederiksberg,6777618,Søren Dahlstrøm,133,False,48,A
+frederiksberg,121219427,Ebbe Wendt Lorenzen,77,False,57,A
+frederiksberg,6777608,Christine Jørnø Vestergaard,167,False,57,A
+frederiksberg,23129,Rune Rummel,98,False,43,A
+frederiksberg,6777611,Jasminka Kamic,27,False,-1,A
+frederiksberg,121219431,Mads Simonsen,19,False,27,A
+frederiksberg,121219432,Mostafa Benyahia,17,False,61,A
+frederiksberg,6777614,Malou Astrup,123,False,32,A
+frederiksberg,121745311,Joan Pedersen,6,False,-1,A
+frederiksberg,121219424,Asbjørn Dalgaard,10,False,41,A
+frederiksberg,23187,Marie-Louise Knuppert,16,False,74,A
+frederiksberg,27671,Lone Loklindt,1548,True,65,B
+frederiksberg,6611513,Freja Fokdal,1294,True,29,B
+frederiksberg,120493697,Per Toni Hansen,52,False,69,B
+frederiksberg,113422,Karsten Lauritsen,146,False,60,B
+frederiksberg,120493694,Isabel Havndrup Aackmann,587,True,24,B
+frederiksberg,6611514,Jens-Christian Navarro Poulsen,44,False,-1,
+frederiksberg,3122,Anne Eskildsen,42,False,53,B
+frederiksberg,120493698,Rikke Alice Bille,138,False,-1,
+frederiksberg,120493699,Torben Krogh,38,False,-1,
+frederiksberg,120493695,Jens Otto Jarløv,55,False,-1,
+frederiksberg,120493696,Mirjam Marie Dyekjær,26,False,-1,
+frederiksberg,6734849,Michael Wagner Molin Brautsch,4785,True,62,C
+frederiksberg,3098,Laura Lindahl,1457,True,42,C
+frederiksberg,3137,Nikolaj Bøgh,1070,True,56,C
+frederiksberg,37748,Alexandra Dessoy,619,True,41,C
+frederiksberg,6735025,Anders Storgaard,717,True,31,C
+frederiksberg,3139,Merete Winther Hildebrandt,508,True,60,C
+frederiksberg,3144,Brian Holm,844,True,63,C
+frederiksberg,38197,Carina Høedt,455,True,37,C
+frederiksberg,3143,Fasael Rehman,443,True,44,C
+frederiksberg,40265,Jacob Rosenberg,245,False,61,C
+frederiksberg,120184324,Jimmy Streit,179,False,61,C
+frederiksberg,6735044,Claus Wagenblast-Franck,307,True,61,C
+frederiksberg,120184011,Marie Budtz Andersen,62,False,49,C
+frederiksberg,113377,Caspar Stefani,300,False,35,C
+frederiksberg,120184236,Maj-Britt Mathiesen,270,False,54,C
+frederiksberg,120184114,Torben Grinderslev,30,False,59,C
+frederiksberg,120184010,Malou Ananiassen,51,False,30,C
+frederiksberg,120184361,Tina Jacobsen,98,False,54,C
+frederiksberg,120184083,Klaus Eskelund,139,False,51,C
+frederiksberg,120184268,Rami Zouzou,90,False,48,C
+frederiksberg,120184160,Rie Jakobsen,103,False,49,C
+frederiksberg,120184218,Elias Lederhaas,74,False,23,C
+frederiksberg,6643335,Else Marie Thorgaard,204,False,42,C
+frederiksberg,120184048,Søren Brønchenburg,59,False,58,C
+frederiksberg,41698,Silas T. H. Rasmussen,20,False,28,C
+frederiksberg,120184043,Peder Brandhof,55,False,60,C
+frederiksberg,120184290,Jesper Ronald Jensen,58,False,57,C
+frederiksberg,36732,Henrik Kragelund,216,False,56,C
+frederiksberg,121505263,Anne Benard,19,False,66,C
+frederiksberg,121260577,Ane Sophie Rolsted Nielsen,318,True,39,C
+frederiksberg,121505272,Nikoline Ida Christiansen,118,False,-1,
+frederiksberg,121505387,Carsten Volden,7,False,58,C
+frederiksberg,121745312,Martin Skytte,12,False,-1,
+frederiksberg,121745313,Per Odin Thiim Thim,30,False,-1,
+frederiksberg,26727,Lotte Kofoed,1216,True,-1,
+frederiksberg,56698,Michella Lescher,335,True,-1,
+frederiksberg,120184832,August Gade,321,False,-1,
+frederiksberg,8234,Nikolaj Bührmann,145,False,-1,
+frederiksberg,118840464,Bjarke Yolal Bisgaard,73,False,-1,
+frederiksberg,118840465,Peter Kristiansen,21,False,-1,
+frederiksberg,121241508,Julius Lundsteen,42,False,-1,
+frederiksberg,26715,Henning C. Hansen,33,False,-1,
+frederiksberg,121745314,Henriette Cavling,20,False,-1,
+frederiksberg,121745315,Carsten Nørballe,54,False,-1,
+frederiksberg,121745316,Carsten Dyring Nielsen,7,False,-1,
+frederiksberg,121745317,Nina Wendt,109,False,-1,
+frederiksberg,6744592,Tomas Munch Nielsen,6,False,-1,
+frederiksberg,121745318,Jesper Jerry Schou Nielsen,20,False,-1,
+frederiksberg,3182,René Hülz,43,False,-1,
+frederiksberg,3099,Lars Berg Andersen,389,True,-1,
+frederiksberg,120495937,Frederik Tuxen Bjerrum,144,False,-1,
+frederiksberg,120495984,Henrik Karl Hierl,42,False,-1,
+frederiksberg,3194,Bettina Palle,25,False,-1,
+frederiksberg,120496055,Line Østergaard Olsen,41,False,-1,
+frederiksberg,121248637,Joseph Favilla,92,False,-1,
+frederiksberg,40267,Henrik Murmann,23,False,-1,
+frederiksberg,6785051,Bitten Vivi Jensen,112,False,-1,
+frederiksberg,121745319,Thomas Olsen,4,False,-1,
+frederiksberg,6785053,Pierre Larsen,1,False,-1,
+frederiksberg,121689881,Helle Wulff,12,False,-1,
+frederiksberg,42886,Helle Sjelle,269,False,-1,
+frederiksberg,40195,Kurt Pii,12,False,-1,
+frederiksberg,120646314,Thomas Jean Nielsen,74,False,-1,
+frederiksberg,120646313,Mads Freund,24,False,-1,
+frederiksberg,121694834,Cecilie Fisker,114,False,-1,
+frederiksberg,121707835,Bodil Hebeltoft,78,False,-1,
+frederiksberg,3158,David Gerschwald,72,False,-1,
+frederiksberg,121707793,Matthew Dawids,106,False,-1,
+frederiksberg,121707792,Margit W. Peters,11,False,-1,
+frederiksberg,121707791,Berit Christiansen,29,False,75,O
+frederiksberg,121745320,Claude Teisen-Simony,12,False,-1,
+frederiksberg,3183,Jan E. Jørgensen,1695,True,-1,
+frederiksberg,42868,Malene Sandfeld,241,True,-1,
+frederiksberg,120497020,Michael Schrøder,46,False,-1,
+frederiksberg,120497021,Joachim Høyrup,9,False,-1,
+frederiksberg,1871493,Casper Pedersen,136,False,-1,
+frederiksberg,3189,Christian Ohm-Hieronymussen,25,False,-1,
+frederiksberg,39404,Søren Udholm Frost,58,False,-1,
+frederiksberg,121249447,Frank Stjerne,3,False,-1,
+frederiksberg,121249450,Preben Boldt,18,False,-1,
+frederiksberg,121249446,Brit Hovgaard,26,False,-1,
+frederiksberg,121249452,Susanne Bonfils,13,False,-1,
+frederiksberg,121249451,Søren Bach,37,False,-1,
+frederiksberg,121249448,Per Ludvigsen,62,False,-1,
+frederiksberg,121249449,Per Paludan,16,False,-1,
+frederiksberg,28793,Mette Kaasfeldt Bram,359,False,-1,
+frederiksberg,28830,Kim Hjerrild,128,False,-1,
+frederiksberg,121189918,Tim Wodskou,83,False,-1,
+frederiksberg,6783784,Annedorthe Kring,43,False,-1,
+frederiksberg,121189916,Thomas Mølgaard Andersen,66,False,-1,
+frederiksberg,33228,Eva Bechmann,76,False,-1,
+frederiksberg,40667,Rasmus Holme,838,True,-1,
+frederiksberg,6611029,Bianca Vitting,659,True,-1,
+frederiksberg,6611034,Emil Samaras,345,True,27,Ø
+frederiksberg,56712,Pil Yildiz,525,True,-1,
+frederiksberg,120454319,Palle Bisgaard,183,False,68,Ø
+frederiksberg,56714,Tone Høybye,129,False,-1,
+frederiksberg,121248755,Rosa Agersnap Bone,1423,True,-1,
+frederiksberg,6611014,Mads-Emil Christensen,67,False,-1,
+frederiksberg,6611031,Mia Haugaard,187,False,-1,
+frederiksberg,40660,Daniel Panduro,71,False,-1,
+frederiksberg,121654194,Tilde Nordin Dræger,80,False,-1,
+frederiksberg,121745322,Birgit Bech,66,False,-1,
+frederiksberg,121745323,Connie Dupont,9,False,-1,
+frederiksberg,6611015,Christina Ytzen Lauridsen,31,False,-1,
+frederiksberg,6611017,Anne Eggen,64,False,-1,
+frederiksberg,6611030,Jakob Ørsted,116,False,-1,
+frederiksberg,6611016,Morten Christensen-Hornehøj,26,False,-1,
+frederiksberg,56715,Marianne Rohde,13,False,-1,
+frederiksberg,121737192,Laurids Kristian Fahl,18,False,-1,
+frederiksberg,121745325,Gabriel Egholm Rasmussen,81,False,-1,
+frederiksberg,6611033,Else Guldager,109,False,-1,
+frederiksberg,121745326,Benjamin Birke Kirkeskov,6,False,-1,
