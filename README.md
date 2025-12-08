@@ -2,7 +2,7 @@
 - Samia Wahib `psv745`
 - Ida Marie Grøn `zpv282`
 
-## data
+## Data
 ### Target municipalities
 - Albertslund
 - Ballerup
