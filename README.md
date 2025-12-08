@@ -5,9 +5,9 @@
 ## information from in data/ 
 | municipality   | votes+elected for every candidate | party for every candidate |
 | -------------- | --------------------------------- | ------------------------- |
-| Albertslund    |                                   | x                         |
+| Albertslund    | x                                 | x                         |
 | Ballerup       | x                                 | x                         |
-| Brøndby        |                                   | x                         |
+| Brøndby        | x                                 | x                         |
 | Dragør         | x                                 | x                         |
 | Frederiksberg  | x                                 | x                         |
 | Furesø         | x                                 | x                         |
@@ -15,9 +15,9 @@
 | Gladsaxe       | x                                 | x                         |
 | Glostrup       | x                                 | x                         |
 | Greve          | x                                 | x                         |
-| Herlev         |                                   | x                         |
+| Herlev         | x                                 | x                         |
 | Hvidovre       | x                                 | x                         |
-| Ishøj          |                                   | x                         |
+| Ishøj          | x                                 | x                         |
 | København      | x                                 | x                         |
 | Lyngby-Taarbæk | x                                 | x                         |
 | Rødovre        | x                                 | x                         |
