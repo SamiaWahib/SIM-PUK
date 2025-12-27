@@ -8,7 +8,12 @@ app = marimo.App(width="medium")
 def _():
     import marimo as mo
     import math
-    mo.md('# pick a munipality:')
+    import numpy as np
+    from sklearn.decomposition import PCA
+    from sklearn.preprocessing import StandardScaler
+    import matplotlib.pyplot as plt
+    import pandas as pd
+    import csv
 
     municipalities = ["koebenhavn", "frederiksberg", 
                       "hvidovre", "taarnby", 
@@ -40,7 +45,7 @@ def _():
                       "Rudersdal":"rudersdal", 
                       "Greve":"greve"}
 
-    party_color_map = {'A': '#AF0D0D', # social demokratiet
+    party_color_map = {'A': '#AF0D0D', # socialdemokratiet
                        'B': '#7A1898', # radikale
                        'C': '#729B0D', # konservative
                        'D': '#00505B', # nye borgerlige
@@ -57,8 +62,21 @@ def _():
     def get_color(letter):
         if letter in party_color_map.keys():
             return party_color_map[letter]
-        return '#330019' # dark maroon color, for those candidates with lesser-known parties
-    return get_color, math, mo, mun_dan_to_eng
+        return '#330019' # dark maroon color, for parties not represented in parliament
+
+
+    return (
+        PCA,
+        StandardScaler,
+        csv,
+        get_color,
+        math,
+        mo,
+        mun_dan_to_eng,
+        np,
+        pd,
+        plt,
+    )
 
 
 @app.cell
@@ -85,15 +103,11 @@ def _(mo):
 
 
 @app.cell
-def _(chosen_size, get_color, math, mun_dan_to_eng, muni):
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import pandas as pd
-
+def _(chosen_size, get_color, math, mun_dan_to_eng, muni, np, pd, plt):
     chosen_file = pd.read_csv(f'./data/{mun_dan_to_eng[muni.value]}.csv')
 
-    parties = pd.Series(chosen_file['party'].value_counts())
-    letters = parties.index
+    parties_srs = pd.Series(chosen_file['party'].value_counts())
+    letters = parties_srs.index
 
 
     let_dict = {letter: [0,0] for letter in letters}
@@ -103,7 +117,6 @@ def _(chosen_size, get_color, math, mun_dan_to_eng, muni):
         num = cand['votes']
         ele = 1 if cand['elected'] else 0
         if not math.isnan(num): let_dict[cand['party']][0] += num
-        #if cand['party'] == 'Ø': print(num)
         let_dict[cand['party']][1] += ele
 
     color_elect = [get_color(letter) for letter in letters]
@@ -111,24 +124,24 @@ def _(chosen_size, get_color, math, mun_dan_to_eng, muni):
     def nested_pie_num_cand():
         lst = []
         color_not_elec = ['black', 'grey'] * len(letters) * 2
-    
+
         # for each party, get the their corresponding color
         # return a numpy.array with elected, candidates that weren't elected, and color for each party
         for letter in letters:
-            chosen_file = parties[letter] # todo: rename
+            chosen_file = parties_srs[letter] # todo: rename
             elected = let_dict[letter][1]
             lst.append([elected, chosen_file-elected])
         lst = np.array(lst)
-    
+
         fig, ax = plt.subplots()
         size = 0.3
-    
+
         ax.pie(lst.sum(axis=1), radius=1, colors=color_elect,
                wedgeprops=dict(width=size, edgecolor='w'), labels=letters)
-    
+
         ax.pie(lst.flatten(), radius=1-size, colors=color_not_elec,
                wedgeprops=dict(width=size, edgecolor='w')) 
-    
+
         ax.set(aspect="equal", title=f'Party size by number of candidates in {muni.value}. \n {color_not_elec[1]} = not elected, {color_not_elec[0]} = elected')
         plt.legend(letters, loc=(-0.3,0))
         return ax
@@ -137,7 +150,7 @@ def _(chosen_size, get_color, math, mun_dan_to_eng, muni):
         votes = [let_dict[letter][0] for letter in letters]
         #print(votes,letters)
         size = 0.6
-    
+
         fig, ax = plt.subplots()
 
         ax.pie(votes, radius=1, colors = color_elect,
@@ -155,7 +168,125 @@ def _(chosen_size, get_color, math, mun_dan_to_eng, muni):
 
 
 @app.cell
-def _():
+def _(mo, muni):
+    topics = [
+        f"{muni.value} Kommune", # 1-7 = 7 
+        "Trafik", # 8-9 = 2
+        "Miljø og klima", # 10-11 = 2
+        "Kultur, idræt og fritid", # 12-13 = 2
+        "Social- og integrationsområdet", # 14-15 = 2
+        "Ældre", # 16-17 = 2
+        "Sundhed", # 18-19 = 2
+        "Skole / dagtilbud for børn", # 20-21 = 2
+        "Erhverv / administration", # 22-23 = 2
+        "Skat", # 24-25 = 2
+        "Beredskab og sikkerhed", # 26-27 = 2
+    ]
+    chosen_topic = mo.ui.dropdown(["Alle"] + topics, value = "Alle", label = "See PCA based on the topic of:")
+    chosen_topic
+    return (chosen_topic,)
+
+
+@app.cell
+def _(chosen_topic, csv, mun_dan_to_eng, muni):
+    # getting data
+    data = []
+
+    with open('./data/' + mun_dan_to_eng[muni.value] + '.csv', mode='r') as file:
+        content = csv.reader(file)
+        for line in content:
+            lst = []
+            lst.append(line[5])
+            if not line[10]: continue
+            for _i in range(10, 30 * 2):
+                if _i % 2 == 0: lst.append(line[_i])
+                else: continue
+            data.append(lst)
+
+    description = f" on the topic of {chosen_topic.value}"
+
+    def get_start_stop():
+        match chosen_topic.value:
+            case "Trafik": 
+                return 8,9
+            case "Miljø og klima": 
+                return 10,11
+            case "Kultur, idræt og fritid": 
+                return 12,13
+            case "Social- og integrationsområdet": 
+                return 14,15
+            case "Ældre": 
+                return 16,17
+            case "Sundhed": 
+                return 18,19
+            case "Skole / dagtilbud for børn": 
+                return 20,21
+            case "Erhverv / administration": 
+                return 22,23
+            case "Skat": 
+                return 24,25
+            case "Beredskab og sikkerhed": 
+                return 26,27
+            case _: 
+                return 1,7
+
+    parties = [row[0] for row in data[1:]]
+
+    if chosen_topic.value == "Alle":
+        description = ""
+        filtered = data[1:]
+    else: 
+        start, stop = get_start_stop()
+        data = data[1:]
+        filtered = [[parties[j]] + data[j][start:stop+1] for j in range(len(parties))] #data[1:]
+    return description, filtered, parties
+
+
+@app.cell
+def _(PCA, StandardScaler, description, filtered, get_color, np, parties, plt):
+    # PCA
+    features = []
+    for row in filtered:
+        feat = []
+        for v in row[1:]:
+            if v: feat.append(float(v))
+            else: feat.append(0.0)
+        features.append(feat)
+    features = np.array(features, dtype=float)
+
+    scaler = StandardScaler()
+    features_scaled = scaler.fit_transform(features)
+    pca = PCA(n_components=2)
+    pca_result = pca.fit_transform(features_scaled)
+
+    unique_parties = sorted(set(parties))
+    point_colors = [get_color(p) for p in parties]
+
+    fig = plt.figure(figsize=(8, 6))
+    plt.scatter(pca_result[:, 0], pca_result[:, 1], c=point_colors, s=30, zorder=2)
+
+    party_means = {}
+    coords = np.array(pca_result)
+    party_array = np.array(parties)
+    for p in unique_parties:
+        idx = np.where(party_array == p)[0]
+        if idx.size == 0: continue
+        pts = coords[idx]
+        mean_pt = pts.mean(axis=0)
+        party_means[p] = mean_pt
+        for pt in pts:
+            plt.plot([mean_pt[0], pt[0]], [mean_pt[1], pt[1]], color=get_color(p), linewidth=0.6, alpha=0.7, zorder=1)
+        plt.scatter(mean_pt[0], mean_pt[1], color=get_color(p), edgecolor='k', s=140, marker='X', zorder=3)
+    
+    #plt.xlabel(f'PC1 ({pca.explained_variance_ratio_[0]:.1%})')
+    #plt.ylabel(f'PC2 ({pca.explained_variance_ratio_[1]:.1%})')
+    plt.title('PCA Analysis colored by party with party means' + description)
+    for p in unique_parties:
+        plt.scatter([], [], color=get_color(p), label=p)
+    plt.legend(title='Party', bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
+
+    fig
     return
 
 

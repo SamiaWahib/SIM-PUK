@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.18.4"
+__generated_with = "0.18.0"
 app = marimo.App()
 
 
@@ -74,8 +74,10 @@ def _(PCA, StandardScaler, data, np, plt):
         else:
             colors[p] = cmap(_i % cmap.N)
     point_colors = [colors[p] for p in parties]
+
     plt.figure(figsize=(8, 6))
     plt.scatter(pca_result[:, 0], pca_result[:, 1], c=point_colors, s=30, zorder=2)
+
     party_means = {}
     coords = np.array(pca_result)
     party_array = np.array(parties)
@@ -91,6 +93,7 @@ def _(PCA, StandardScaler, data, np, plt):
     # falling back to a colormap for unmapped parties.
             plt.plot([mean_pt[0], pt[0]], [mean_pt[1], pt[1]], color=colors[p], linewidth=0.6, alpha=0.7, zorder=1)
         plt.scatter(mean_pt[0], mean_pt[1], color=colors[p], edgecolor='k', s=140, marker='X', zorder=3)
+    
     plt.xlabel(f'PC1 ({pca.explained_variance_ratio_[0]:.1%})')
     plt.ylabel(f'PC2 ({pca.explained_variance_ratio_[1]:.1%})')
     plt.title('PCA Analysis colored by party with party means')
