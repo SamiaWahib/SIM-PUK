@@ -91,6 +91,12 @@ def _():
             randcolor = (val,val,val) # when r=g=b it gives color on black-white scale
             party_colors[letter] = randcolor
             return randcolor
+
+    def mysum(lst):
+        sumi = 0
+        for e in lst:
+            sumi += e
+        return sumi
     return (
         PCA,
         StandardScaler,
@@ -99,6 +105,7 @@ def _():
         math,
         mo,
         mun_dan_to_eng,
+        mysum,
         np,
         pd,
         plt,
@@ -337,17 +344,18 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(letters, mo, mun_dan_to_eng, muni):
-    newmuni = mo.ui.dropdown(mun_dan_to_eng.keys(), value=muni.value, label = "See data from municipality:")
+def _(letters, mo):
+    #newmuni = mo.ui.dropdown(mun_dan_to_eng.keys(), value=muni.value, label = "See data from municipality:")
     #muni
     topic_party = mo.ui.dropdown(sorted(list(letters)), value="A", label = "See most popular prioritized topics of: ")
-    newmuni,topic_party
-    return newmuni, topic_party
+    #newmuni,
+    topic_party
+    return (topic_party,)
 
 
 @app.cell(hide_code=True)
-def _(get_muni, newmuni, np, topic_party, topics):
-    _file, _, _letters, _ = get_muni(newmuni)
+def _(get_muni, muni, mysum, np, topic_party, topics):
+    _file, _, _letters, _ = get_muni(muni)#newmuni)
     # topics
     topic_data = []
     for _, candrow in _file.iterrows():
@@ -383,8 +391,9 @@ def _(get_muni, newmuni, np, topic_party, topics):
 
     # handle the chosen party
     chosen_num_topic = [[stats_for_chosen_party[i],topics[1:][i]] for i in range(len(stats_for_chosen_party))]
-    while len(chosen_num_topic) < 3:
-        chosen_num_topic.append(['',''])
+
+    if mysum(stats_for_chosen_party) == 0:
+        chosen_num_topic = [['','']] * len(topics[1:])
     chosen_num_topic = sorted(chosen_num_topic)
 
     if not stats_for_chosen_party: 
@@ -398,16 +407,16 @@ def _(get_muni, newmuni, np, topic_party, topics):
 
 
 @app.cell(hide_code=True)
-def _(chosen_num_topic, mo, newmuni, top_sums, topic_party):
+def _(chosen_num_topic, mo, muni, top_sums, topic_party):
     mo.md(rf"""
     If two or more topics in the top three are equally popular, then they are listed in a random order.
 
-    # Top three topics for all candidates in {newmuni.value}
+    # Top three topics for all candidates in {muni.value}
     ## 🥇 1. {top_sums[-1][1]}
     ## 🥈 2. {top_sums[-2][1]}
-    ## 🥉 3. {top_sums[-3][1]}
-
-    # Top three topics for candidates from the party: {topic_party.value} in {newmuni.value}
+    ## 🥉 3. {top_sums[-3][1]} 
+ 
+    # Top three topics for candidates from the party: {topic_party.value} in {muni.value}
     ## 🥇 1. {chosen_num_topic[-1][1]}
     ## 🥈 2. {chosen_num_topic[-2][1]}
     ## 🥉 3. {chosen_num_topic[-3][1]}
@@ -431,7 +440,7 @@ def _(
     pbar = barax[1]
     width = 0.5
 
-    # create bars for all topics and parties
+    # create bar chart for all topics and parties
     for ite in range(len(topic_count_by_party)):
         bottom = np.sum(topic_count_by_party[:ite], axis = 0)
         newbar = allbar.bar(topics[1:], topic_count_by_party[ite], width, label=letters[ite], bottom=bottom, color = get_color(letters[ite]))
