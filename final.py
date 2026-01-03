@@ -9,20 +9,17 @@ def _(mo):
     mo.md(r"""
     todo
     - [ ] check om rækkefølge af spørgsmål/temaer er samme for alle (albertslund brugt)
-    - [ ] gør grafik om priotiterede temaer interaktiv
-    - [ ] tilføj til grafik om temaer
+    - [ ] tilføj til grafik om temaer: top tre topics? for det valgte parti?
     - [ ] lad selv brugeren svare på spørgsmål og blive placeret med pca indenfor valgt tema
-    - [ ] tekst om pca - forklar
-    - [ ] problem med pca: beredskab og sikkerhed viser intet
-        - sidste spørgsmåls svar ikke registreret (ser på albertslund)
+    - [ ] tilføj forklarende tekster
     - [ ] omskriv pca? chat
-    - [x] giv mindre partier forskellige farver
-    - [x] partier i alfabetisk rækkefølge
+    - [ ] omskriv variable kun relevante for den egen celle til at starte med underscore
+    - [ ] dict der mapper parti bostav til parti navn for readability?
     """)
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     import marimo as mo
     import math
@@ -82,7 +79,7 @@ def _():
                     'Å': '#00FF00', # alternativet
                     'Æ': '#668dd1', # danmarks demokraterne
                     'Ø': '#F7660D' # enhedslisten
-                   }
+    }
 
 
     def get_color(letter):
@@ -90,8 +87,8 @@ def _():
         if letter in party_colors.keys():
             return party_colors[letter]
         else: # give smaller party a random color
-            val = rand.uniform(0,1)
-            randcolor = (val,val,val)
+            val = rand.uniform(0.1,0.9) # if val=1 then the color is white, val=0 gives black (same as background)
+            randcolor = (val,val,val) # when r=g=b it gives color on black-white scale
             party_colors[letter] = randcolor
             return randcolor
     return (
@@ -109,22 +106,37 @@ def _():
     )
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo, mun_dan_to_eng):
     muni = mo.ui.dropdown(mun_dan_to_eng.keys(), value="Albertslund", label = "See data from municipality:")
     muni
     return (muni,)
 
 
+@app.cell(hide_code=True)
+def _(mun_dan_to_eng, muni, pd):
+    def get_muni(_chosen):
+        _file = pd.read_csv(f'./data/{mun_dan_to_eng[_chosen.value]}.csv')
+        _parties = pd.Series(_file['party'].value_counts())
+        _letters = _parties.index
+        _elec = pd.Series(_file['elected'].value_counts())
+        return _file, _parties, _letters, _elec
+
+    chosen_file, parties_srs, letters, num_elec = get_muni(muni)
+    return chosen_file, get_muni, letters, num_elec, parties_srs
+
+
 @app.cell
-def _(mo, muni):
+def _(chosen_file, letters, mo, muni, num_elec):
     mo.md(f"""
     # Party sizes in {muni.value}
+    ## {chosen_file.shape[0]} candidates ran for {len(letters)} different parties
+    ## {num_elec[True]} candidates were elected
     """)
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     options = ["candidates", "votes"]
     chosen_size = mo.ui.dropdown(options, value = options[0], label = "See party size based on number of:")
@@ -132,14 +144,18 @@ def _(mo):
     return (chosen_size,)
 
 
-@app.cell
-def _(chosen_size, get_color, math, mun_dan_to_eng, muni, np, pd, plt):
-    chosen_file = pd.read_csv(f'./data/{mun_dan_to_eng[muni.value]}.csv')
-
-    parties_srs = pd.Series(chosen_file['party'].value_counts())
-    letters = parties_srs.index
-
-
+@app.cell(hide_code=True)
+def _(
+    chosen_file,
+    chosen_size,
+    get_color,
+    letters,
+    math,
+    muni,
+    np,
+    parties_srs,
+    plt,
+):
     let_dict = {letter: [0,0] for letter in letters}
 
     # returns a dictionary containing each party's letter, number of votes, and how many were elected
@@ -158,9 +174,9 @@ def _(chosen_size, get_color, math, mun_dan_to_eng, muni, np, pd, plt):
         # for each party, get the their corresponding color
         # return a numpy.array with elected, candidates that weren't elected, and color for each party
         for letter in letters:
-            chosen_file = parties_srs[letter] # todo: rename
+            total_num_cand = parties_srs[letter]
             elected = let_dict[letter][1]
-            lst.append([elected, chosen_file-elected])
+            lst.append([elected, total_num_cand-elected])
         lst = np.array(lst)
 
         fig, ax = plt.subplots()
@@ -193,10 +209,10 @@ def _(chosen_size, get_color, math, mun_dan_to_eng, muni, np, pd, plt):
     else:
         ax = pie_num_votes()
     ax
-    return chosen_file, letters
+    return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo, muni, topics):
     topics[0] = f"{muni.value} Kommune"
     chosen_topic = mo.ui.dropdown(["Alle"] + topics, value = "Alle", label = "See PCA based on the topic of:")
@@ -204,7 +220,7 @@ def _(mo, muni, topics):
     return (chosen_topic,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(chosen_topic, csv, mun_dan_to_eng, muni):
     # getting data
     data = []
@@ -261,7 +277,7 @@ def _(chosen_topic, csv, mun_dan_to_eng, muni):
     return description, filtered, parties
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(PCA, StandardScaler, description, filtered, get_color, np, parties, plt):
     # PCA
     features = []
@@ -309,7 +325,7 @@ def _(PCA, StandardScaler, description, filtered, get_color, np, parties, plt):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     forklaring af pca
@@ -320,12 +336,21 @@ def _(mo):
     return
 
 
-@app.cell
-def _(chosen_file, get_color, letters, np, plt, topics):
+@app.cell(hide_code=True)
+def _(letters, mo, mun_dan_to_eng, muni):
+    newmuni = mo.ui.dropdown(mun_dan_to_eng.keys(), value=muni.value, label = "See data from municipality:")
+    #muni
+    topic_party = mo.ui.dropdown(sorted(list(letters)), value="A", label = "See most popular prioritized topics of: ")
+    newmuni,topic_party
+    return newmuni, topic_party
+
+
+@app.cell(hide_code=True)
+def _(get_muni, newmuni, np, topic_party, topics):
+    _file, _, _letters, _ = get_muni(newmuni)
     # topics
-    # problem with / in topics
     topic_data = []
-    for _, candrow in chosen_file.iterrows():
+    for _, candrow in _file.iterrows():
         candi = []
         themes = candrow['themes']
         if isinstance(themes, float): # nan / blank case
@@ -333,12 +358,10 @@ def _(chosen_file, get_color, letters, np, plt, topics):
         tmp = [candrow['party'], themes]
         topic_data.append(tmp)
 
-    barfig, barax = plt.subplots()
-    width = 0.5
+    topic_count_by_party = []
+    stats_for_chosen_party = []
 
-    topic_count_chosen_by_party = []
-
-    for party in letters:
+    for party in _letters:
         tmp = []
         for topic in topics[1:]:
             sum = 0
@@ -349,22 +372,84 @@ def _(chosen_file, get_color, letters, np, plt, topics):
                 elif topic.casefold() in prioritized.casefold(): 
                     sum += 1
             tmp.append(sum)
-        topic_count_chosen_by_party.append(tmp)
+        topic_count_by_party.append(tmp)
+        if party == topic_party.value:
+            stats_for_chosen_party = tmp
 
-    topic_count_chosen_by_party = np.array(topic_count_chosen_by_party)
+    # handle all topics and parties
+    topic_count_by_party = np.array(topic_count_by_party)
+    top_sums = topic_count_by_party.sum(0)
+    top_sums = sorted([[top_sums[i],topics[1:][i]] for i in range(len(top_sums))])
 
-    # create bars
-    for ite in range(len(topic_count_chosen_by_party)):
-        bottom = np.sum(topic_count_chosen_by_party[:ite], axis = 0)
-        newbar = barax.bar(topics[1:], topic_count_chosen_by_party[ite], width, label=letters[ite], bottom=bottom, color = get_color(letters[ite]))
+    # handle the chosen party
+    chosen_num_topic = [[stats_for_chosen_party[i],topics[1:][i]] for i in range(len(stats_for_chosen_party))]
+    while len(chosen_num_topic) < 3:
+        chosen_num_topic.append(['',''])
+    chosen_num_topic = sorted(chosen_num_topic)
 
-    # make lables readable 
-    labels = barax.get_xticklabels()
+    if not stats_for_chosen_party: 
+        stats_for_chosen_party = ['']*10
+    return (
+        chosen_num_topic,
+        stats_for_chosen_party,
+        top_sums,
+        topic_count_by_party,
+    )
+
+
+@app.cell(hide_code=True)
+def _(chosen_num_topic, mo, newmuni, top_sums, topic_party):
+    mo.md(rf"""
+    If two or more topics in the top three are equally popular, then they are listed in a random order.
+
+    # Top three topics for all candidates in {newmuni.value}
+    ## 🥇 1. {top_sums[-1][1]}
+    ## 🥈 2. {top_sums[-2][1]}
+    ## 🥉 3. {top_sums[-3][1]}
+
+    # Top three topics for candidates from the party: {topic_party.value} in {newmuni.value}
+    ## 🥇 1. {chosen_num_topic[-1][1]}
+    ## 🥈 2. {chosen_num_topic[-2][1]}
+    ## 🥉 3. {chosen_num_topic[-3][1]}
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(
+    get_color,
+    letters,
+    np,
+    plt,
+    stats_for_chosen_party,
+    topic_count_by_party,
+    topic_party,
+    topics,
+):
+    barfig, barax = plt.subplots(1,2)
+    allbar = barax[0]
+    pbar = barax[1]
+    width = 0.5
+
+    # create bars for all topics and parties
+    for ite in range(len(topic_count_by_party)):
+        bottom = np.sum(topic_count_by_party[:ite], axis = 0)
+        newbar = allbar.bar(topics[1:], topic_count_by_party[ite], width, label=letters[ite], bottom=bottom, color = get_color(letters[ite]))
+    
+    allbar.set_title("Priotized topics seen by party")
+    labels = allbar.get_xticklabels()
     plt.setp(labels, rotation = 45, horizontalalignment = 'right')
 
-    barax.set_title("Priotized topics seen by party")
-    barax.legend(bbox_to_anchor=(1.2, 1.07))
-    barax
+    # create bar chart for chosen party
+    newbar = pbar.bar(topics[1:], stats_for_chosen_party, width, color = get_color(topic_party.value))
+    pbar.set_title(f"Priotized topics for party: {topic_party.value}")
+    labels = pbar.get_xticklabels()
+    plt.setp(labels, rotation = 45, horizontalalignment = 'right')
+
+    # show the two bar graphs
+    plt.tight_layout()
+    allbar.legend(bbox_to_anchor=(-0.5, 1.07))
+    pbar
     return
 
 
