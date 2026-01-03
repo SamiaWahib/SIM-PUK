@@ -5,6 +5,20 @@ app = marimo.App(width="medium")
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""
+    todo
+    - [ ] check om rækkefølge af spørgsmål/temaer er samme for alle (albertslund brugt)
+    - [ ] gør grafik om priotiterede temaer interaktiv
+    - [ ] tilføj til grafik om temaer
+    - [ ] lab selv brugeren svare på spørgsmål og blive placeret med pca indenfor valgt tema
+    - [ ] tekst om pca - forklar
+    - [ ] problem med pca: kultur = kommune specifikt. noget galt med de visninger. grundet str forskelle/mellemrum case sensitivity etc?
+    """)
+    return
+
+
+@app.cell
 def _():
     import marimo as mo
     import math
@@ -59,11 +73,25 @@ def _():
                        'Ø': '#F7660D' # enhedslisten
                       }
 
+
+    topics = [
+        "Kommune specifikt", 
+        "Trafik", 
+        "Miljø og klima", 
+        "Kultur,  idræt og fritid", 
+        "Social- og integrationsområdet", 
+        "Ældre", 
+        "Sundhed", 
+        "Skole/dagtilbud for børn", 
+        "Erhverv/administration", 
+        "Skat", 
+        "Beredskab og sikkerhed", 
+    ]
+
     def get_color(letter):
         if letter in party_color_map.keys():
             return party_color_map[letter]
         return '#330019' # dark maroon color, for parties not represented in parliament
-
 
     return (
         PCA,
@@ -76,6 +104,7 @@ def _():
         np,
         pd,
         plt,
+        topics,
     )
 
 
@@ -148,7 +177,6 @@ def _(chosen_size, get_color, math, mun_dan_to_eng, muni, np, pd, plt):
 
     def pie_num_votes():
         votes = [let_dict[letter][0] for letter in letters]
-        #print(votes,letters)
         size = 0.6
 
         fig, ax = plt.subplots()
@@ -164,24 +192,12 @@ def _(chosen_size, get_color, math, mun_dan_to_eng, muni, np, pd, plt):
     else:
         ax = pie_num_votes()
     ax
-    return
+    return chosen_file, letters
 
 
 @app.cell
-def _(mo, muni):
-    topics = [
-        f"{muni.value} Kommune", # 1-7 = 7 
-        "Trafik", # 8-9 = 2
-        "Miljø og klima", # 10-11 = 2
-        "Kultur, idræt og fritid", # 12-13 = 2
-        "Social- og integrationsområdet", # 14-15 = 2
-        "Ældre", # 16-17 = 2
-        "Sundhed", # 18-19 = 2
-        "Skole / dagtilbud for børn", # 20-21 = 2
-        "Erhverv / administration", # 22-23 = 2
-        "Skat", # 24-25 = 2
-        "Beredskab og sikkerhed", # 26-27 = 2
-    ]
+def _(mo, muni, topics):
+    topics[0] = f"{muni.value} Kommune"
     chosen_topic = mo.ui.dropdown(["Alle"] + topics, value = "Alle", label = "See PCA based on the topic of:")
     chosen_topic
     return (chosen_topic,)
@@ -205,7 +221,7 @@ def _(chosen_topic, csv, mun_dan_to_eng, muni):
 
     description = f" on the topic of {chosen_topic.value}"
 
-    def get_start_stop():
+    def get_start_stop(): # albertslund numbers
         match chosen_topic.value:
             case "Trafik": 
                 return 8,9
@@ -277,7 +293,7 @@ def _(PCA, StandardScaler, description, filtered, get_color, np, parties, plt):
         for pt in pts:
             plt.plot([mean_pt[0], pt[0]], [mean_pt[1], pt[1]], color=get_color(p), linewidth=0.6, alpha=0.7, zorder=1)
         plt.scatter(mean_pt[0], mean_pt[1], color=get_color(p), edgecolor='k', s=140, marker='X', zorder=3)
-    
+
     #plt.xlabel(f'PC1 ({pca.explained_variance_ratio_[0]:.1%})')
     #plt.ylabel(f'PC2 ({pca.explained_variance_ratio_[1]:.1%})')
     plt.title('PCA Analysis colored by party with party means' + description)
@@ -291,7 +307,73 @@ def _(PCA, StandardScaler, description, filtered, get_color, np, parties, plt):
 
 
 @app.cell
-def _():
+def _(mo):
+    mo.md(r"""
+    forklaring af pca
+    - ikke højre-venstre spektrum
+    - få spørgsmål for temaer = mange punkter oven i hinanden, ikke så mange muligheder for forskellighed
+    - kryds = gennemsnit for parti
+    """)
+    return
+
+
+@app.cell
+def _(chosen_file, get_color, letters, np, plt, topics):
+    # topics
+    # problem with / in topics
+    topic_data = []
+    for _, candrow in chosen_file.iterrows():
+        candi = []
+        themes = candrow['themes']
+        if isinstance(themes, float): # nan / blank case
+            themes = ""
+        tmp = [candrow['party'], themes]
+        topic_data.append(tmp)
+
+    barfig, barax = plt.subplots()
+    width = 0.5
+
+    topic_count_chosen_by_party = []
+    for topic in topics[1:]:
+        #tmp = [topic]
+        tmp = []
+        for party in letters:
+            sum = 0
+            for candi in topic_data:
+                prioritized = candi[1]
+                if not prioritized or candi[0] != party: 
+                    continue
+                elif topic.casefold() in prioritized.casefold(): 
+                    sum += 1
+            tmp.append(sum)
+        topic_count_chosen_by_party.append(tmp)
+
+    topic_count_chosen_by_party = [list(flup) for flup in zip(*topic_count_chosen_by_party)]
+    topic_count_chosen_by_party = np.array(topic_count_chosen_by_party)
+
+    # create bars
+    for ite in range(len(topic_count_chosen_by_party)):
+        bottom = np.sum(topic_count_chosen_by_party[:ite], axis = 0)
+        newbar = barax.bar(topics[1:], topic_count_chosen_by_party[ite], width, label=letters[ite], bottom=bottom, color = get_color(letters[ite]))
+
+    # make lables readable 
+    labels = barax.get_xticklabels()
+    plt.setp(labels, rotation = 45, horizontalalignment = 'right')
+
+    barax.set_title("Priotized topics seen by party")
+    barax.legend(bbox_to_anchor=(1.2, 1.07))
+    barax
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    be aware of the bias in the graph above
+    - more candidates running + answered questionnaire -> greater representation
+    - prioritized on paper ≠ action
+    - candidates choose the amount of themes they select. selecting more themes -> greater representation
+    """)
     return
 
 
