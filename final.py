@@ -11,9 +11,13 @@ def _(mo):
     - [ ] check om rækkefølge af spørgsmål/temaer er samme for alle (albertslund brugt)
     - [ ] gør grafik om priotiterede temaer interaktiv
     - [ ] tilføj til grafik om temaer
-    - [ ] lab selv brugeren svare på spørgsmål og blive placeret med pca indenfor valgt tema
+    - [ ] lad selv brugeren svare på spørgsmål og blive placeret med pca indenfor valgt tema
     - [ ] tekst om pca - forklar
-    - [ ] problem med pca: kultur = kommune specifikt. noget galt med de visninger. grundet str forskelle/mellemrum case sensitivity etc?
+    - [ ] problem med pca: beredskab og sikkerhed viser intet
+        - sidste spørgsmåls svar ikke registreret (ser på albertslund)
+    - [ ] omskriv pca? chat
+    - [x] giv mindre partier forskellige farver
+    - [x] partier i alfabetisk rækkefølge
     """)
     return
 
@@ -28,51 +32,29 @@ def _():
     import matplotlib.pyplot as plt
     import pandas as pd
     import csv
+    import random as rand
 
-    municipalities = ["koebenhavn", "frederiksberg", 
-                      "hvidovre", "taarnby", 
-                      "dragoer", "roedovre", 
-                      "lyngby-taarbaek", 
-                      "broendby", "gentofte", 
-                      "gladsaxe", "herlev",
-                      "ballerup", "glostrup",
-                      "albertslund", "ishoej", "vallensbaek", 
-                      "furesoe", "rudersdal", "greve"]
-
-    mun_dan_to_eng = {"København":"koebenhavn", 
-                      "Frederiksberg" : "frederiksberg", 
-                      "Hvidovre":"hvidovre", 
-                      "Tårnby":"taarnby", 
-                      "Dragør":"dragoer", 
-                      "Rødovre":"roedovre", 
-                      "Lyngby-taarbæk":"lyngby-taarbaek", 
+    mun_dan_to_eng = {
+                      "Albertslund":"albertslund", 
+                      "Ballerup":"ballerup", 
                       "Brøndby":"broendby", 
+                      "Dragør":"dragoer", 
+                      "Frederiksberg" : "frederiksberg", 
+                      "Furesø":"furesoe", 
                       "Gentofte":"gentofte", 
                       "Gladsaxe":"gladsaxe", 
-                      "Herlev":"herlev",
-                      "Ballerup":"ballerup", 
                       "Glostrup":"glostrup",
-                      "Albertslund":"albertslund", 
+                      "Greve":"greve",
+                      "Herlev":"herlev",
+                      "Hvidovre":"hvidovre", 
                       "Ishøj":"ishoej", 
-                      "Vallensbæk":"vallensbaek", 
-                      "Furesø":"furesoe", 
+                      "København":"koebenhavn", 
+                      "Lyngby-taarbæk":"lyngby-taarbaek", 
+                      "Rødovre":"roedovre", 
                       "Rudersdal":"rudersdal", 
-                      "Greve":"greve"}
-
-    party_color_map = {'A': '#AF0D0D', # socialdemokratiet
-                       'B': '#7A1898', # radikale
-                       'C': '#729B0D', # konservative
-                       'D': '#00505B', # nye borgerlige
-                       'F': '#F74B95', # SF
-                       'I': 'cyan', # liberal alliance
-                       'M': 'purple', # moderaterne
-                       'O': '#FCD03B', # DF
-                       'V': '#01438E', # venstre
-                       'Å': '#00FF00', # alternativet
-                       'Æ': '#668dd1', # danmarks demokraterne
-                       'Ø': '#F7660D' # enhedslisten
-                      }
-
+                      "Tårnby":"taarnby", 
+                      "Vallensbæk":"vallensbaek"
+    }
 
     topics = [
         "Kommune specifikt", 
@@ -88,11 +70,30 @@ def _():
         "Beredskab og sikkerhed", 
     ]
 
-    def get_color(letter):
-        if letter in party_color_map.keys():
-            return party_color_map[letter]
-        return '#330019' # dark maroon color, for parties not represented in parliament
+    party_colors = {'A': '#AF0D0D', # socialdemokratiet
+                    'B': '#7A1898', # radikale
+                    'C': '#729B0D', # konservative
+                    'D': '#00505B', # nye borgerlige
+                    'F': '#F74B95', # SF
+                    'I': 'cyan', # liberal alliance
+                    'M': 'purple', # moderaterne
+                    'O': '#FCD03B', # DF
+                    'V': '#01438E', # venstre
+                    'Å': '#00FF00', # alternativet
+                    'Æ': '#668dd1', # danmarks demokraterne
+                    'Ø': '#F7660D' # enhedslisten
+                   }
 
+
+    def get_color(letter):
+        # ensures consistency in giving the same color to all parties in all graphs
+        if letter in party_colors.keys():
+            return party_colors[letter]
+        else: # give smaller party a random color
+            val = rand.uniform(0,1)
+            randcolor = (val,val,val)
+            party_colors[letter] = randcolor
+            return randcolor
     return (
         PCA,
         StandardScaler,
@@ -110,7 +111,7 @@ def _():
 
 @app.cell
 def _(mo, mun_dan_to_eng):
-    muni = mo.ui.dropdown(mun_dan_to_eng.keys(), value="Herlev", label = "See data from municipality:")
+    muni = mo.ui.dropdown(mun_dan_to_eng.keys(), value="Albertslund", label = "See data from municipality:")
     muni
     return (muni,)
 
@@ -214,7 +215,7 @@ def _(chosen_topic, csv, mun_dan_to_eng, muni):
             lst = []
             lst.append(line[5])
             if not line[10]: continue
-            for _i in range(10, 30 * 2):
+            for _i in range(10, len(line)-3):
                 if _i % 2 == 0: lst.append(line[_i])
                 else: continue
             data.append(lst)
@@ -227,7 +228,7 @@ def _(chosen_topic, csv, mun_dan_to_eng, muni):
                 return 8,9
             case "Miljø og klima": 
                 return 10,11
-            case "Kultur, idræt og fritid": 
+            case "Kultur,  idræt og fritid": 
                 return 12,13
             case "Social- og integrationsområdet": 
                 return 14,15
@@ -235,18 +236,19 @@ def _(chosen_topic, csv, mun_dan_to_eng, muni):
                 return 16,17
             case "Sundhed": 
                 return 18,19
-            case "Skole / dagtilbud for børn": 
+            case "Skole/dagtilbud for børn": 
                 return 20,21
-            case "Erhverv / administration": 
+            case "Erhverv/administration": 
                 return 22,23
             case "Skat": 
                 return 24,25
             case "Beredskab og sikkerhed": 
                 return 26,27
-            case _: 
+            case _: # specific topics to the municipality
                 return 1,7
 
     parties = [row[0] for row in data[1:]]
+    #print(data[1:])
 
     if chosen_topic.value == "Alle":
         description = ""
@@ -254,7 +256,8 @@ def _(chosen_topic, csv, mun_dan_to_eng, muni):
     else: 
         start, stop = get_start_stop()
         data = data[1:]
-        filtered = [[parties[j]] + data[j][start:stop+1] for j in range(len(parties))] #data[1:]
+        filtered = [[parties[j]] + data[j][start:stop+1] for j in range(len(parties))] 
+    #print(filtered)
     return description, filtered, parties
 
 
@@ -334,10 +337,10 @@ def _(chosen_file, get_color, letters, np, plt, topics):
     width = 0.5
 
     topic_count_chosen_by_party = []
-    for topic in topics[1:]:
-        #tmp = [topic]
+
+    for party in letters:
         tmp = []
-        for party in letters:
+        for topic in topics[1:]:
             sum = 0
             for candi in topic_data:
                 prioritized = candi[1]
@@ -348,7 +351,6 @@ def _(chosen_file, get_color, letters, np, plt, topics):
             tmp.append(sum)
         topic_count_chosen_by_party.append(tmp)
 
-    topic_count_chosen_by_party = [list(flup) for flup in zip(*topic_count_chosen_by_party)]
     topic_count_chosen_by_party = np.array(topic_count_chosen_by_party)
 
     # create bars
