@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.18.4"
+__generated_with = "0.18.0"
 app = marimo.App(width="medium")
 
 
@@ -8,13 +8,35 @@ app = marimo.App(width="medium")
 def _(mo):
     mo.md(r"""
     todo
-    - [ ] check om rækkefølge af spørgsmål/temaer er samme for alle (albertslund brugt)
-    - [ ] tilføj til grafik om temaer: top tre topics? for det valgte parti?
     - [ ] lad selv brugeren svare på spørgsmål og blive placeret med pca indenfor valgt tema
     - [ ] tilføj forklarende tekster
     - [ ] omskriv pca? chat
     - [ ] omskriv variable kun relevante for den egen celle til at starte med underscore
-    - [ ] dict der mapper parti bostav til parti navn for readability?
+    - [ ] dict der mapper parti bogstav til parti navn for readability?
+    - [ ] undgå at lokallister har samme farve
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    /// admonition | Heads up.
+
+    Here's some information.
+    ///
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    /// details | Hello, details!
+
+    Some additional content.
+
+    ///
     """)
     return
 
@@ -84,7 +106,6 @@ def _():
                     'Ø': '#F7660D' # enhedslisten
     }
 
-
     def get_color(letter):
         # ensures consistency in giving the same color to all parties in all graphs
         if letter in party_colors.keys():
@@ -126,16 +147,9 @@ def _(mo, mun_dan_to_eng):
 
 
 @app.cell
-def _(mo):
-    mo.md(r"""
-    def get_muni(_chosen):
-        _file = pd.read_csv(f'./data/{mun_dan_to_eng[_chosen.value]}.csv')
-        _parties = pd.Series(_file['party'].value_counts())
-        _letters = _parties.index
-        _elec = pd.Series(_file['elected'].value_counts())
-        return _file, _parties, _letters, _elec
-
-    chosen_file, parties_srs, letters, num_elec = get_muni(muni)
+def _(mo, muni):
+    mo.md(rf"""
+    # Party size of {muni.value}
     """)
     return
 
@@ -148,7 +162,7 @@ def _(mo):
     return (chosen_size,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(math, np, pd, plt):
     def info_on_cand(file):
         parties = pd.Series(file['party'].value_counts())
@@ -213,7 +227,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(
     chosen_size,
     get_color,
@@ -225,6 +239,7 @@ def _(
     pie_num_votes,
 ):
     chosen_file = pd.read_csv(f'./data/{mun_dan_to_eng[muni.value]}.csv')
+    num_elec = pd.Series(chosen_file['elected'].value_counts())
 
     ps, letters, let_dict = info_on_cand(chosen_file)
     color_elect = [get_color(letter) for letter in letters]
@@ -235,7 +250,16 @@ def _(
     else:
         ax = pie_num_votes(let_dict, letters, color_elect)
     ax
-    return chosen_file, letters
+    return chosen_file, letters, num_elec
+
+
+@app.cell
+def _(chosen_file, letters, mo, num_elec):
+    mo.md(f"""
+    ## {chosen_file.shape[0]} candidates ran for {len(letters)} different parties
+    ## {num_elec[True]} candidates were elected
+    """)
+    return
 
 
 @app.cell
@@ -246,7 +270,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(
     chosen_size,
     get_color,
@@ -275,12 +299,38 @@ def _(
     return
 
 
+@app.cell(hide_code=True)
+def _(chosen_file, pd):
+    postals = pd.Series(chosen_file['postal number'].value_counts())
+
+    return (postals,)
+
+
+@app.cell
+def _(mo, muni, postals):
+    mo.md(rf"""
+    # Postal codes
+    There are candidates running from {len(postals.index)} different postal codes in {muni.value}.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(plt, postals):
+    _labels = postals.index
+    size = 0.6
+    _fig, postalax = plt.subplots()
+    postalax.pie(postals.to_list(), radius=1,
+               wedgeprops=dict(width=size, edgecolor='w'), labels=_labels)
+    plt.legend(_labels, loc=(1.5,0.3))
+    return
+
+
 @app.cell
 def _(mo):
     mo.md(r"""
-    # Party size in {muni.value}
-    ## {chosen_file.shape[0]} candidates ran for {len(letters)} different parties
-    ## {num_elec[True]} candidates were elected
+    # PCA
+    kommentar
     """)
     return
 
@@ -395,7 +445,7 @@ def _(PCA, StandardScaler, description, filtered, get_color, np, parties, plt):
     plt.tight_layout()
 
     fig
-    return
+    return (party_means,)
 
 
 @app.cell(hide_code=True)
@@ -405,6 +455,39 @@ def _(mo):
     - ikke højre-venstre spektrum
     - få spørgsmål for temaer = mange punkter oven i hinanden, ikke så mange muligheder for forskellighed
     - kryds = gennemsnit for parti
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo, np, party_means):
+    closets = [float('inf'), '', '']
+    furthest = [float('-inf'), '', '']
+
+    for _keya,_vala in party_means.items():
+        for _keyb, _valb in party_means.items():
+            if _keya == _keyb: continue
+            dist = np.linalg.norm(_vala - _valb)
+            if dist < closets[0]:
+                closets = [dist, _keya, _keyb]
+            elif dist > furthest[0]:
+                furthest = [dist, _keya, _keyb]
+
+    mo.md(f"Two closest parties are {closets[1]} and {closets[2]}. <BR> Two furthest parties are {furthest[1]} and {furthest[2]}.")
+
+    # find candidates der er længst fra hinanden
+    # find candidates der er tættest på hinanden
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    # Prioritized topics
+    kommentar
+    - de har selv bestemt hvor mange
+    - repræsentation
+    - svarer ikke til handling/hvad de stemmer
     """)
     return
 
@@ -476,20 +559,20 @@ def _(chosen_num_topic, mo, muni, top_sums, topic_party):
     mo.md(rf"""
     If two or more topics in the top three are equally popular, then they are listed in a random order.
 
-    # Top three topics for all candidates in {muni.value}
-    ## 🥇 1. {top_sums[-1][1]}
-    ## 🥈 2. {top_sums[-2][1]}
-    ## 🥉 3. {top_sums[-3][1]} 
+    ## Top three topics for all candidates in {muni.value}
+    ### 🥇 1. {top_sums[-1][1]}
+    ### 🥈 2. {top_sums[-2][1]}
+    ### 🥉 3. {top_sums[-3][1]} 
 
-    # Top three topics for candidates from the party: {topic_party.value} in {muni.value}
-    ## 🥇 1. {chosen_num_topic[-1][1]}
-    ## 🥈 2. {chosen_num_topic[-2][1]}
-    ## 🥉 3. {chosen_num_topic[-3][1]}
+    ## Top three topics for candidates from the party: {topic_party.value} in {muni.value}
+    ### 🥇 1. {chosen_num_topic[-1][1]}
+    ### 🥈 2. {chosen_num_topic[-2][1]}
+    ### 🥉 3. {chosen_num_topic[-3][1]}
     """)
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(
     get_color,
     letters,
@@ -535,6 +618,27 @@ def _(mo):
     - prioritized on paper ≠ action
     - candidates choose the amount of themes they select. selecting more themes -> greater representation
     """)
+    return
+
+
+@app.cell
+def _(chosen_file, muni, np, pd, plt):
+    ages = pd.Series(chosen_file['age']).value_counts()
+    x = ages.index
+    y = ages.to_list()
+    plt.bar(x, y)
+    plt.title(f"Age distribution of candidates in {muni.value}")
+    plt.yticks(np.arange(0, max(y)+1,1))
+    plt.xlabel("Age")
+    plt.ylabel("How many candidates share the age")
+    plt.show()
+    return (x,)
+
+
+@app.cell
+def _(mo, muni, x):
+    mo.md(f"Oldest candidate in {muni.value} is {int(max(x))} years old")
+
     return
 
 
