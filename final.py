@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.18.0"
+__generated_with = "0.18.4"
 app = marimo.App(width="medium")
 
 
@@ -30,6 +30,9 @@ def _():
     import pandas as pd
     import csv
     import random as rand
+    import glob
+    import os
+
 
     mun_dan_to_eng = {
                       "Albertslund":"albertslund", 
@@ -102,11 +105,13 @@ def _():
         StandardScaler,
         csv,
         get_color,
+        glob,
         math,
         mo,
         mun_dan_to_eng,
         mysum,
         np,
+        os,
         pd,
         plt,
         topics,
@@ -120,8 +125,9 @@ def _(mo, mun_dan_to_eng):
     return (muni,)
 
 
-@app.cell(hide_code=True)
-def _(mun_dan_to_eng, muni, pd):
+@app.cell
+def _(mo):
+    mo.md(r"""
     def get_muni(_chosen):
         _file = pd.read_csv(f'./data/{mun_dan_to_eng[_chosen.value]}.csv')
         _parties = pd.Series(_file['party'].value_counts())
@@ -130,15 +136,6 @@ def _(mun_dan_to_eng, muni, pd):
         return _file, _parties, _letters, _elec
 
     chosen_file, parties_srs, letters, num_elec = get_muni(muni)
-    return chosen_file, get_muni, letters, num_elec, parties_srs
-
-
-@app.cell
-def _(chosen_file, letters, mo, muni, num_elec):
-    mo.md(f"""
-    # Party sizes in {muni.value}
-    ## {chosen_file.shape[0]} candidates ran for {len(letters)} different parties
-    ## {num_elec[True]} candidates were elected
     """)
     return
 
@@ -151,75 +148,144 @@ def _(mo):
     return (chosen_size,)
 
 
-@app.cell(hide_code=True)
-def _(
-    chosen_file,
-    chosen_size,
-    get_color,
-    letters,
-    math,
-    muni,
-    np,
-    parties_srs,
-    plt,
-):
-    let_dict = {letter: [0,0] for letter in letters}
+@app.cell
+def _(math, np, pd, plt):
+    def info_on_cand(file):
+        parties = pd.Series(file['party'].value_counts())
+        letters = parties.index
 
-    # returns a dictionary containing each party's letter, number of votes, and how many were elected
-    for i, cand in chosen_file.iterrows():
-        num = cand['votes']
-        ele = 1 if cand['elected'] else 0
-        if not math.isnan(num): let_dict[cand['party']][0] += num
-        let_dict[cand['party']][1] += ele
+        let_dict = {letter: [0,0] for letter in letters}
 
-    color_elect = [get_color(letter) for letter in letters]
+        # returns a dictionary containing each party's letter, number of votes, and how many were elected
+        for i, cand in file.iterrows():
+            num = cand['votes']
+            ele = 1 if cand['elected'] else 0
+            if not math.isnan(num): let_dict[cand['party']][0] += num
+            #if cand['party'] == 'Ø': print(num)
+            let_dict[cand['party']][1] += ele
 
-    def nested_pie_num_cand():
+        return parties, letters, let_dict
+
+    def nested_pie_num_cand(f, l, dic, p, c, s):
         lst = []
-        color_not_elec = ['black', 'grey'] * len(letters) * 2
+        color_not_elec = ['black', 'grey'] * len(l) * 2
 
         # for each party, get the their corresponding color
         # return a numpy.array with elected, candidates that weren't elected, and color for each party
-        for letter in letters:
-            total_num_cand = parties_srs[letter]
-            elected = let_dict[letter][1]
-            lst.append([elected, total_num_cand-elected])
+        for letter in l:
+            f = p[letter] # todo: rename
+            elected = dic[letter][1]
+            lst.append([elected, f-elected])
         lst = np.array(lst)
 
         fig, ax = plt.subplots()
         size = 0.3
 
-        ax.pie(lst.sum(axis=1), radius=1, colors=color_elect,
-               wedgeprops=dict(width=size, edgecolor='w'), labels=letters)
+        ax.pie(lst.sum(axis=1), radius=1, colors=c,
+               wedgeprops=dict(width=size, edgecolor='w'), labels=l)
 
         ax.pie(lst.flatten(), radius=1-size, colors=color_not_elec,
                wedgeprops=dict(width=size, edgecolor='w')) 
 
-        ax.set(aspect="equal", title=f'Party size by number of candidates in {muni.value}. \n {color_not_elec[1]} = not elected, {color_not_elec[0]} = elected')
-        plt.legend(letters, loc=(-0.3,0))
+        ax.set(aspect="equal", title=s + f'\n {color_not_elec[1]} = not elected, {color_not_elec[0]} = elected')
+        plt.legend(l, loc=(-0.5,0))
         return ax
 
-    def pie_num_votes():
-        votes = [let_dict[letter][0] for letter in letters]
+    def pie_num_votes(dic, l, col):
+        votes = [dic[letter][0] for letter in l]
+        #print(votes,letters)
         size = 0.6
 
         fig, ax = plt.subplots()
 
-        ax.pie(votes, radius=1, colors = color_elect,
-               wedgeprops=dict(width=size, edgecolor='w'), labels=letters)
+        ax.pie(votes, radius=1, colors = col,
+               wedgeprops=dict(width=size, edgecolor='w'), labels=l)
 
-        plt.legend(letters, loc=(-0.3,0))
+        plt.legend(
+            l, loc=(-0.5,0))
         return ax
+    return info_on_cand, nested_pie_num_cand, pie_num_votes
 
-    if chosen_size.value == "candidates":
-        ax = nested_pie_num_cand()
-    else:
-        ax = pie_num_votes()
-    ax
+
+@app.cell
+def _():
+    # nested pie chart of each party in chosen municipality and how many of its candidates were elected based on selected party size
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
+def _(
+    chosen_size,
+    get_color,
+    info_on_cand,
+    mun_dan_to_eng,
+    muni,
+    nested_pie_num_cand,
+    pd,
+    pie_num_votes,
+):
+    chosen_file = pd.read_csv(f'./data/{mun_dan_to_eng[muni.value]}.csv')
+
+    ps, letters, let_dict = info_on_cand(chosen_file)
+    color_elect = [get_color(letter) for letter in letters]
+    txt_for_muni = f'Party size by number of candidates in {muni.value}.'
+
+    if chosen_size.value == "candidates":
+        ax = nested_pie_num_cand(chosen_file, letters, let_dict, ps, color_elect, txt_for_muni)
+    else:
+        ax = pie_num_votes(let_dict, letters, color_elect)
+    ax
+    return chosen_file, letters
+
+
+@app.cell
+def _(mo):
+    mo.md("""
+    # nested pie chart of all parties across all municipalities and how many of its candidates were elected based on selected party size
+    """)
+    return
+
+
+@app.cell
+def _(
+    chosen_size,
+    get_color,
+    glob,
+    info_on_cand,
+    nested_pie_num_cand,
+    os,
+    pd,
+    pie_num_votes,
+):
+    all_files = os.path.join("./data/", "*.csv")
+    all_list = glob.glob(all_files)
+
+    # joining all municipality files 
+    all_muni = pd.concat(map(pd.read_csv, all_list), ignore_index=True)
+
+    all_parties, all_letters, all_let_dict = info_on_cand(all_muni)
+    all_color_elect = [get_color(letter) for letter in all_letters]
+    txt_for_all_muni = f'Party size by number of candidates in all municipalities.'
+
+    if chosen_size.value == "candidates":
+        ax2 = nested_pie_num_cand(all_files, all_letters, all_let_dict, all_parties, all_color_elect, txt_for_all_muni)
+    else:
+        ax2 = pie_num_votes(all_let_dict, all_letters, all_color_elect)
+    ax2
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    # Party size in {muni.value}
+    ## {chosen_file.shape[0]} candidates ran for {len(letters)} different parties
+    ## {num_elec[True]} candidates were elected
+    """)
+    return
+
+
+@app.cell
 def _(mo, muni, topics):
     topics[0] = f"{muni.value} Kommune"
     chosen_topic = mo.ui.dropdown(["Alle"] + topics, value = "Alle", label = "See PCA based on the topic of:")
@@ -354,11 +420,10 @@ def _(letters, mo):
 
 
 @app.cell(hide_code=True)
-def _(get_muni, muni, mysum, np, topic_party, topics):
-    _file, _, _letters, _ = get_muni(muni)#newmuni)
+def _(chosen_file, letters, mysum, np, topic_party, topics):
     # topics
     topic_data = []
-    for _, candrow in _file.iterrows():
+    for _, candrow in chosen_file.iterrows():
         candi = []
         themes = candrow['themes']
         if isinstance(themes, float): # nan / blank case
@@ -369,7 +434,7 @@ def _(get_muni, muni, mysum, np, topic_party, topics):
     topic_count_by_party = []
     stats_for_chosen_party = []
 
-    for party in _letters:
+    for party in letters:
         tmp = []
         for topic in topics[1:]:
             sum = 0
@@ -415,7 +480,7 @@ def _(chosen_num_topic, mo, muni, top_sums, topic_party):
     ## 🥇 1. {top_sums[-1][1]}
     ## 🥈 2. {top_sums[-2][1]}
     ## 🥉 3. {top_sums[-3][1]} 
- 
+
     # Top three topics for candidates from the party: {topic_party.value} in {muni.value}
     ## 🥇 1. {chosen_num_topic[-1][1]}
     ## 🥈 2. {chosen_num_topic[-2][1]}
@@ -424,7 +489,7 @@ def _(chosen_num_topic, mo, muni, top_sums, topic_party):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(
     get_color,
     letters,
@@ -444,7 +509,7 @@ def _(
     for ite in range(len(topic_count_by_party)):
         bottom = np.sum(topic_count_by_party[:ite], axis = 0)
         newbar = allbar.bar(topics[1:], topic_count_by_party[ite], width, label=letters[ite], bottom=bottom, color = get_color(letters[ite]))
-    
+
     allbar.set_title("Priotized topics seen by party")
     labels = allbar.get_xticklabels()
     plt.setp(labels, rotation = 45, horizontalalignment = 'right')
