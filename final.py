@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.18.4"
+__generated_with = "0.18.0"
 app = marimo.App(width="medium")
 
 
@@ -10,10 +10,8 @@ def _(mo):
     todo
     - [ ] lad selv brugeren svare på spørgsmål og blive placeret med pca indenfor valgt tema
     - [ ] tilføj forklarende tekster
-    - [ ] omskriv pca? chat
     - [ ] omskriv variable kun relevante for den egen celle til at starte med underscore
     - [ ] dict der mapper parti bogstav til parti navn for readability?
-    - [ ] undgå at lokallister har samme farve
     """)
     return
 
@@ -83,12 +81,17 @@ def _():
                     'Ø': '#F7660D' # enhedslisten
     }
 
+    used = []
+
     def get_color(letter):
         # ensures consistency in giving the same color to all parties in all graphs
         if letter in party_colors.keys():
             return party_colors[letter]
         else: # give smaller party a random color
             val = rand.uniform(0.1,0.9) # if val=1 then the color is white, val=0 gives black (same as background)
+            while val in used: # check that the color is not already being used for another party
+                val = rand.uniform(0.1,0.9) 
+            used.append(val)
             randcolor = (val,val,val) # when r=g=b it gives color on black-white scale
             party_colors[letter] = randcolor
             return randcolor
@@ -321,7 +324,87 @@ def _(plt, postals):
 @app.cell
 def _(mo):
     mo.md(r"""
+    # Age distributions
+    /// details | Additional information
+    Below are bar charts of the prioritzed topics of the different parties and candidates. From the data set, it appears that candidates can choose up to five topics. This is a huge concern since ..... MANGLER
+    ///
+    """)
+    return
+
+
+@app.cell
+def _(chosen_file, muni, np, pd, plt):
+    ages = pd.Series(chosen_file['age']).value_counts()
+
+    x = ages.index
+    y = ages.to_list()
+
+    _fig, _ax = plt.subplots()
+
+    _ax.bar(x, y)
+    _ax.set_title(f"Age distribution of candidates in {muni.value}")
+    _ax.set_yticks(np.arange(0, max(y)+1,1))
+    _ax.set_xlabel("Age")
+    _ax.set_ylabel("How many candidates share the age")
+
+    _fig
+    return (x,)
+
+
+@app.cell
+def _(mo, muni, x):
+    mo.md(f"""
+    ### Youngest candidate in {muni.value} is {int(min(x))} years old
+    ### Oldest candidate in {muni.value} is {int(max(x))} years old
+    """)
+    return
+
+
+@app.cell
+def _(chosen_file, muni, np, pd, plt):
+    _elected_ages = chosen_file.query('elected == True')
+
+    _ages = pd.Series(_elected_ages['age']).value_counts()
+    x_max = _ages.index
+    _y = _ages.to_list()
+
+    _fig, _ax = plt.subplots()
+
+    _ax.bar(x_max, _y)
+    _ax.set_title(f"Age distribution of elected candidates in {muni.value}")
+    _ax.set_yticks(np.arange(0, max(_y)+2,1))
+    _ax.set_xlabel("Age")
+    _ax.set_ylabel("How many candidates share the age")
+
+    _fig
+    return (x_max,)
+
+
+@app.cell
+def _(mo, muni, x_max):
+    mo.md(rf"""
+    ### Youngest elected candidate in {muni.value} is {int(min(x_max))} years old
+    ### Oldest elected candidate in {muni.value} is {int(max(x_max))} years old
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
     # PCA
+    /// details | Details about the PCA
+
+    The principal component analysis is a technique that reduces the dimensionalities and features in the data set while keeping the most important information. So the multiple dimensions from the election data is reduced down to two dimensions to make it more readable. However, politics is not just a simple left-right wing spectrum and contains more complex dimensions? (dumt ord). <BR>
+    Another impact on the PCA is that there are only a few questions for each topic. This might not give a full picture of a candidate/party, and therefore the analysis might not be adequate.
+    ved lowkey ikke om det er sandt lol
+    forklaring af pca
+
+        ikke højre-venstre spektrum
+        få spørgsmål for temaer = mange punkter oven i hinanden, ikke så mange muligheder for forskellighed
+        kryds = gennemsnit for parti
+
+    ///
     """)
     return
 
@@ -389,25 +472,6 @@ def _(chosen_topic, csv, mun_dan_to_eng, muni):
         filtered = [[parties[j]] + data[j][start:stop+1] for j in range(len(parties))] 
     #print(filtered)
     return description, filtered, parties
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    /// details | Details about the PCA
-
-    The principal component analysis is a technique that reduces the dimensionalities and features in the data set while keeping the most important information. So the multiple dimensions from the election data is reduced down to two dimensions to make it more readable. However, politics is not just a simple left-right wing spectrum and contains more complex dimensions? (dumt ord). <BR>
-    Another impact on the PCA is that there are only a few questions for each topic. This might not give a full picture of a candidate/party, and therefore the analysis might not be adequate.
-    ved lowkey ikke om det er sandt lol
-    forklaring af pca
-
-        ikke højre-venstre spektrum
-        få spørgsmål for temaer = mange punkter oven i hinanden, ikke så mange muligheder for forskellighed
-        kryds = gennemsnit for parti
-
-    ///
-    """)
-    return
 
 
 @app.cell(hide_code=True)
@@ -624,98 +688,6 @@ def _(mo):
     - prioritized on paper ≠ action
     - candidates choose the amount of themes they select. selecting more themes -> greater representation
     """)
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md(r"""
-    # Bar chart
-    """)
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md(r"""
-    /// details | Additional information
-    Below are bar charts of the prioritzed topics of the different parties and candidates. From the data set, it appears that candidates can choose up to five topics. This is a huge concern since ..... MANGLER
-    ///
-    """)
-    return
-
-
-@app.cell
-def _(mo, muni):
-    mo.md(rf"""
-    ## Shows the age distribution of all candidates in {muni.value}.
-    """)
-    return
-
-
-@app.cell
-def _(chosen_file, muni, np, pd, plt):
-    ages = pd.Series(chosen_file['age']).value_counts()
-
-    x = ages.index
-    y = ages.to_list()
-
-    _fig, _ax = plt.subplots()
-
-    _ax.bar(x, y)
-    _ax.set_title(f"Age distribution of candidates in {muni.value}")
-    _ax.set_yticks(np.arange(0, max(y)+1,1))
-    _ax.set_xlabel("Age")
-    _ax.set_ylabel("How many candidates share the age")
-
-    _fig
-    return (x,)
-
-
-@app.cell
-def _(mo, muni, x):
-    mo.md(f"""
-    ### Oldest candidate in {muni.value} is {int(max(x))} years old
-    """)
-    return
-
-
-@app.cell
-def _():
-    ## Shows the age distribution of elected candidates in {muni.value}.
-    return
-
-
-@app.cell
-def _(chosen_file, muni, np, pd, plt):
-    _elected_ages = chosen_file.query('elected == True')
-
-    _ages = pd.Series(_elected_ages['age']).value_counts()
-    x_max = _ages.index
-    _y = _ages.to_list()
-
-    _fig, _ax = plt.subplots()
-
-    _ax.bar(x_max, _y)
-    _ax.set_title(f"Age distribution of elected candidates in {muni.value}")
-    _ax.set_yticks(np.arange(0, max(_y)+2,1))
-    _ax.set_xlabel("Age")
-    _ax.set_ylabel("How many candidates share the age")
-
-    _fig
-    return (x_max,)
-
-
-@app.cell
-def _(mo, muni, x_max):
-    mo.md(rf"""
-    ### Oldest elected candidate in {muni.value} is {int(max(x_max))} years old
-    """)
-    return
-
-
-@app.cell
-def _():
     return
 
 
