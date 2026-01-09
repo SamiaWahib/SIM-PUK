@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.18.0"
+__generated_with = "0.18.4"
 app = marimo.App(width="medium")
 
 
@@ -14,29 +14,6 @@ def _(mo):
     - [ ] omskriv variable kun relevante for den egen celle til at starte med underscore
     - [ ] dict der mapper parti bogstav til parti navn for readability?
     - [ ] undgå at lokallister har samme farve
-    """)
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md(r"""
-    /// admonition | Heads up.
-
-    Here's some information.
-    ///
-    """)
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md(r"""
-    /// details | Hello, details!
-
-    Some additional content.
-
-    ///
     """)
     return
 
@@ -141,7 +118,7 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo, mun_dan_to_eng):
-    muni = mo.ui.dropdown(mun_dan_to_eng.keys(), value="Albertslund", label = "See data from municipality:")
+    muni = mo.ui.dropdown(mun_dan_to_eng.keys(), value="Albertslund", label="## See data from municipality:")
     muni
     return (muni,)
 
@@ -157,9 +134,18 @@ def _(mo, muni):
 @app.cell(hide_code=True)
 def _(mo):
     options = ["candidates", "votes"]
-    chosen_size = mo.ui.dropdown(options, value = options[0], label = "See party size based on number of:")
+    chosen_size = mo.ui.dropdown(options, value = options[0], label = "## See party size based on number of:")
     chosen_size
     return (chosen_size,)
+
+
+@app.cell
+def _(chosen_file, letters, mo, num_elec):
+    mo.md(f"""
+    ## {chosen_file.shape[0]} candidates ran for {len(letters)} different parties
+    ## {num_elec[True]} candidates were elected
+    """)
+    return
 
 
 @app.cell(hide_code=True)
@@ -223,7 +209,15 @@ def _(math, np, pd, plt):
 
 @app.cell
 def _():
-    # nested pie chart of each party in chosen municipality and how many of its candidates were elected based on selected party size
+    # Nested pie chart
+    return
+
+
+@app.cell
+def _(mo, muni):
+    mo.md(rf"""
+    ##### Each party in {muni.value} and their candidates.
+    """)
     return
 
 
@@ -254,18 +248,17 @@ def _(
 
 
 @app.cell
-def _(chosen_file, letters, mo, num_elec):
-    mo.md(f"""
-    ## {chosen_file.shape[0]} candidates ran for {len(letters)} different parties
-    ## {num_elec[True]} candidates were elected
+def _(mo):
+    mo.md("""
+    # Nested pie chart
     """)
     return
 
 
 @app.cell
 def _(mo):
-    mo.md("""
-    # nested pie chart of all parties across all municipalities and how many of its candidates were elected based on selected party size
+    mo.md(r"""
+    All parties across all municipalities and their candidates.
     """)
     return
 
@@ -302,7 +295,6 @@ def _(
 @app.cell(hide_code=True)
 def _(chosen_file, pd):
     postals = pd.Series(chosen_file['postal number'].value_counts())
-
     return (postals,)
 
 
@@ -330,7 +322,6 @@ def _(plt, postals):
 def _(mo):
     mo.md(r"""
     # PCA
-    kommentar
     """)
     return
 
@@ -338,7 +329,7 @@ def _(mo):
 @app.cell
 def _(mo, muni, topics):
     topics[0] = f"{muni.value} Kommune"
-    chosen_topic = mo.ui.dropdown(["Alle"] + topics, value = "Alle", label = "See PCA based on the topic of:")
+    chosen_topic = mo.ui.dropdown(["Alle"] + topics, value = "Alle", label = "### See PCA based on the topic of:")
     chosen_topic
     return (chosen_topic,)
 
@@ -401,6 +392,25 @@ def _(chosen_topic, csv, mun_dan_to_eng, muni):
 
 
 @app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    /// details | Details about the PCA
+
+    The principal component analysis is a technique that reduces the dimensionalities and features in the data set while keeping the most important information. So the multiple dimensions from the election data is reduced down to two dimensions to make it more readable. However, politics is not just a simple left-right wing spectrum and contains more complex dimensions? (dumt ord). <BR>
+    Another impact on the PCA is that there are only a few questions for each topic. This might not give a full picture of a candidate/party, and therefore the analysis might not be adequate.
+    ved lowkey ikke om det er sandt lol
+    forklaring af pca
+
+        ikke højre-venstre spektrum
+        få spørgsmål for temaer = mange punkter oven i hinanden, ikke så mange muligheder for forskellighed
+        kryds = gennemsnit for parti
+
+    ///
+    """)
+    return
+
+
+@app.cell(hide_code=True)
 def _(PCA, StandardScaler, description, filtered, get_color, np, parties, plt):
     # PCA
     features = []
@@ -449,34 +459,30 @@ def _(PCA, StandardScaler, description, filtered, get_color, np, parties, plt):
 
 
 @app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    forklaring af pca
-    - ikke højre-venstre spektrum
-    - få spørgsmål for temaer = mange punkter oven i hinanden, ikke så mange muligheder for forskellighed
-    - kryds = gennemsnit for parti
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo, np, party_means):
-    closets = [float('inf'), '', '']
+def _(np, party_means):
+    closest = [float('inf'), '', '']
     furthest = [float('-inf'), '', '']
 
     for _keya,_vala in party_means.items():
         for _keyb, _valb in party_means.items():
             if _keya == _keyb: continue
             dist = np.linalg.norm(_vala - _valb)
-            if dist < closets[0]:
-                closets = [dist, _keya, _keyb]
+            if dist < closest[0]:
+                closest = [dist, _keya, _keyb]
             elif dist > furthest[0]:
                 furthest = [dist, _keya, _keyb]
+    return closest, furthest
 
-    mo.md(f"Two closest parties are {closets[1]} and {closets[2]}. <BR> Two furthest parties are {furthest[1]} and {furthest[2]}.")
 
-    # find candidates der er længst fra hinanden
-    # find candidates der er tættest på hinanden
+@app.cell(hide_code=True)
+def _(closest, furthest, mo):
+    mo.md(f"""
+    /// admonition | Based on the PCA and chosen topic
+
+    Two closest parties are {closest[1]} and {closest[2]}. <BR>
+    Two furthest parties are {furthest[1]} and {furthest[2]}.
+    ///
+    """)
     return
 
 
@@ -496,7 +502,7 @@ def _(mo):
 def _(letters, mo):
     #newmuni = mo.ui.dropdown(mun_dan_to_eng.keys(), value=muni.value, label = "See data from municipality:")
     #muni
-    topic_party = mo.ui.dropdown(sorted(list(letters)), value="A", label = "See most popular prioritized topics of: ")
+    topic_party = mo.ui.dropdown(sorted(list(letters)), value="A", label = "### See most popular prioritized topics of: ")
     #newmuni,
     topic_party
     return (topic_party,)
@@ -622,23 +628,94 @@ def _(mo):
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""
+    # Bar chart
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    /// details | Additional information
+    Below are bar charts of the prioritzed topics of the different parties and candidates. From the data set, it appears that candidates can choose up to five topics. This is a huge concern since ..... MANGLER
+    ///
+    """)
+    return
+
+
+@app.cell
+def _(mo, muni):
+    mo.md(rf"""
+    ## Shows the age distribution of all candidates in {muni.value}.
+    """)
+    return
+
+
+@app.cell
 def _(chosen_file, muni, np, pd, plt):
     ages = pd.Series(chosen_file['age']).value_counts()
+
     x = ages.index
     y = ages.to_list()
-    plt.bar(x, y)
-    plt.title(f"Age distribution of candidates in {muni.value}")
-    plt.yticks(np.arange(0, max(y)+1,1))
-    plt.xlabel("Age")
-    plt.ylabel("How many candidates share the age")
-    plt.show()
+
+    _fig, _ax = plt.subplots()
+
+    _ax.bar(x, y)
+    _ax.set_title(f"Age distribution of candidates in {muni.value}")
+    _ax.set_yticks(np.arange(0, max(y)+1,1))
+    _ax.set_xlabel("Age")
+    _ax.set_ylabel("How many candidates share the age")
+
+    _fig
     return (x,)
 
 
 @app.cell
 def _(mo, muni, x):
-    mo.md(f"Oldest candidate in {muni.value} is {int(max(x))} years old")
+    mo.md(f"""
+    ### Oldest candidate in {muni.value} is {int(max(x))} years old
+    """)
+    return
 
+
+@app.cell
+def _():
+    ## Shows the age distribution of elected candidates in {muni.value}.
+    return
+
+
+@app.cell
+def _(chosen_file, muni, np, pd, plt):
+    _elected_ages = chosen_file.query('elected == True')
+
+    _ages = pd.Series(_elected_ages['age']).value_counts()
+    x_max = _ages.index
+    _y = _ages.to_list()
+
+    _fig, _ax = plt.subplots()
+
+    _ax.bar(x_max, _y)
+    _ax.set_title(f"Age distribution of elected candidates in {muni.value}")
+    _ax.set_yticks(np.arange(0, max(_y)+2,1))
+    _ax.set_xlabel("Age")
+    _ax.set_ylabel("How many candidates share the age")
+
+    _fig
+    return (x_max,)
+
+
+@app.cell
+def _(mo, muni, x_max):
+    mo.md(rf"""
+    ### Oldest elected candidate in {muni.value} is {int(max(x_max))} years old
+    """)
+    return
+
+
+@app.cell
+def _():
     return
 
 
