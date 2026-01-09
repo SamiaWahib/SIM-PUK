@@ -5,17 +5,6 @@ app = marimo.App(width="medium")
 
 
 @app.cell
-def _(mo):
-    mo.md(rf"""
-    todo
-    - [ ] lad selv brugeren svare på spørgsmål og blive placeret med pca indenfor valgt tema
-    - [ ] tilføj forklarende tekster
-    - [ ] omskriv variable kun relevante for den egen celle til at starte med underscore
-    """)
-    return
-
-
-@app.cell
 def _():
     import marimo as mo
     import math
@@ -99,11 +88,12 @@ def _():
         if letter in party_colors.keys():
             return party_colors[letter]
         else: # give smaller party a random color
-            val = rand.uniform(0.1,0.9) # if val=1 then the color is white, val=0 gives black (same as background)
+            val = rand.randint(50,220) # if val=255 then the color is white, val=0 gives black
             while val in used: # check that the color is not already being used for another party
-                val = rand.uniform(0.1,0.9) 
+                val = rand.randint(50,220)
             used.append(val)
-            randcolor = (val,val,val) # when r=g=b it gives color on black-white scale
+            val = hex(val)[2:] # ignore '0x'
+            randcolor = f'#{val}{val}{val}' # when r=g=b it gives color on black-white scale
             party_colors[letter] = randcolor
             return randcolor
 
@@ -125,6 +115,7 @@ def _():
         mysum,
         np,
         os,
+        party_colors,
         pd,
         plt,
         topics,
@@ -132,13 +123,18 @@ def _():
 
 
 @app.cell
-def _(get_color, letter_name, letters, mo):
-    md = "\n".join(
-        f'<span style="display:inline-block;width:35px;height:10px;background:{get_color(l)};"></span> {l} - {letter_name[l] if l in letter_name.keys() else "Lokalliste"} \n'
-        for l in letters
-    )
+def _(mo):
+    mo.md(r"""
+    # Visualisation of the municipal election of 2025
+    We have scraped TV2's results of the candidate quiz for the municipal election in November of 2025 for a number of municipalities near Copnehagen/København.
+    The quiz asks the candidates for some personal information, like age, relationship status and then presents a number of politcal statements, asking them to rate to what extent they agree with the statement on a 5-point Likert scale. The data does not include any elements referring to the actions of the parties or candidates, only what they claim to represent and prioritize.
 
-    mo.md(md)
+    We here present a visualization of some of the data, displaying different qualities of the candidates as a group and the parties that they represent.
+
+    All candidates have been invited to answer the quiz, and while most candidates in the relevant municipalities have chosen to take part, still other have not. We have not included anything from candidates that was not present on TV2.
+    For every candidate we know: Their name, party, number of votes received and if they were elected.
+    Everything else is optional; and candidates may choose not to give any more information.
+    """)
     return
 
 
@@ -150,9 +146,31 @@ def _(mo, mun_dan_to_eng):
 
 
 @app.cell
-def _(mo, muni):
+def _(get_color, letter_name, letters, mo, muni, party_colors):
+    md = "\n".join(
+        f'<span style="display:inline-block;width:35px;height:10px;background:{party_colors[l] if l in party_colors.keys() else get_color(l)};"></span> {l} - {letter_name[l] if l in letter_name.keys() else "Lokalliste"} \n'
+        for l in sorted(letters)
+    )
+
+    _start = f"All parties who ran in {muni.value}, in alphabetic order: <BR>"
+
+    mo.md(_start + md)
+    return
+
+
+@app.cell
+def _(mo):
     mo.md(rf"""
-    # Party size of {muni.value}
+    # Party sizes
+    """)
+    return
+
+
+@app.cell
+def _(chosen_file, letters, mo, num_elec):
+    mo.md(f"""
+    ## {chosen_file.shape[0]} candidates ran for {len(letters)} different parties
+    ## {num_elec[True]} candidates were elected
     """)
     return
 
@@ -163,15 +181,6 @@ def _(mo):
     chosen_size = mo.ui.dropdown(options, value = options[0], label = "## See party size based on number of:")
     chosen_size
     return (chosen_size,)
-
-
-@app.cell
-def _(chosen_file, letters, mo, num_elec):
-    mo.md(f"""
-    ## {chosen_file.shape[0]} candidates ran for {len(letters)} different parties
-    ## {num_elec[True]} candidates were elected
-    """)
-    return
 
 
 @app.cell(hide_code=True)
@@ -232,20 +241,6 @@ def _(math, np, pd, plt):
     return info_on_cand, nested_pie_num_cand, pie_num_votes
 
 
-@app.cell
-def _():
-    # Nested pie chart
-    return
-
-
-@app.cell
-def _(mo, muni):
-    mo.md(rf"""
-    ##### Each party in {muni.value} and their candidates.
-    """)
-    return
-
-
 @app.cell(hide_code=True)
 def _(
     chosen_size,
@@ -270,22 +265,6 @@ def _(
         ax = pie_num_votes(let_dict, letters, color_elect)
     ax
     return chosen_file, letters, num_elec
-
-
-@app.cell
-def _(mo):
-    mo.md("""
-    # Nested pie chart
-    """)
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md(r"""
-    All parties across all municipalities and their candidates.
-    """)
-    return
 
 
 @app.cell(hide_code=True)
@@ -326,7 +305,7 @@ def _(chosen_file, pd):
 @app.cell
 def _(mo, muni, postals):
     mo.md(rf"""
-    # Postal codes
+    # Postal codes of running candidates
     There are candidates running from {len(postals.index)} different postal codes in {muni.value}.
     """)
     return
@@ -391,14 +370,17 @@ def _(mo):
     # PCA
     /// details | Details about the PCA
 
-    The principal component analysis is a technique that reduces the dimensionalities and features in the data set while keeping the most important information. So the multiple dimensions from the election data is reduced down to two dimensions to make it more readable. However, politics is not just a simple left-right wing spectrum and contains more complex dimensions? (dumt ord). <BR>
-    Another impact on the PCA is that there are only a few questions for each topic. This might not give a full picture of a candidate/party, and therefore the analysis might not be adequate.
-    ved lowkey ikke om det er sandt lol
-    forklaring af pca
+    Every point represents a candidate, with their party color, and has a line to an 'X', representing the mean position of the party.
+    If an 'X' appears to have no lines going out of it, it is because it is a party where only a single candidate has submitted their answers to the questions.
 
-        ikke højre-venstre spektrum
-        få spørgsmål for temaer = mange punkter oven i hinanden, ikke så mange muligheder for forskellighed
-        kryds = gennemsnit for parti
+    Only candidates that have submitted their answers to the candidate quiz on TV2 appear in the graph. This may mean that some parties are over- or underrepresented.
+
+    The principal component analysis is a technique that reduces the dimensionalities and features in the data set while keeping the most important information. So the multiple dimensions from the election data is reduced down to two dimensions to make it more readable.
+
+    However, politics is not just a simple left-right wing spectrum and contains more complex dimensions. We cannot see all of these dimensions in a simple graph, and so some information is lost when scaling down the dimension. And the plot below does not show a typical left-right spectrum, but instead allows us to see the candidates and parties in relation to each other.
+
+    When choosing to see the PCA for a specific topic, there might not be a great variation between the positions of the candidates. This is because not many questions were asked for every topic, and so the spread of possible positions may be small. This also causes many candidates to share a position, meaning the points representing them are directly in top of each other, only allowing us to see the color of the candidate last added with that position. Because of this, the party means may be more telling when it comes to the PCA for a specific topic.
+
 
     ///
     """)
@@ -621,19 +603,34 @@ def _(chosen_file, letters, mysum, np, topic_party, topics):
 
 
 @app.cell(hide_code=True)
-def _(chosen_num_topic, mo, muni, top_sums, topic_party):
+def _(chosen_num_topic, letter_name, mo, muni, top_sums, topic_party):
     mo.md(rf"""
+    /// admonition | Most prioritized topics
     If two or more topics in the top three are equally popular, then they are listed in a random order.
-
     ## Top three topics for all candidates in {muni.value}
     ### 🥇 1. {top_sums[-1][1]}
     ### 🥈 2. {top_sums[-2][1]}
     ### 🥉 3. {top_sums[-3][1]} 
 
-    ## Top three topics for candidates from the party: {topic_party.value} in {muni.value}
+    ## Top three topics for candidates from the party: {letter_name[topic_party.value]} in {muni.value}
     ### 🥇 1. {chosen_num_topic[-1][1]}
     ### 🥈 2. {chosen_num_topic[-2][1]}
     ### 🥉 3. {chosen_num_topic[-3][1]}
+    ///
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    /// details | Bias
+    The graphs below may have a significant amount of bias.
+
+    Not every candidate has chosen the same amount of prioritized topics. If a candidate choose more topics, they have a greater representation in the graphs. The same goes for parties overall.
+
+    The more candidates are running and have answered the quiz from a party, the greater the party is represented.
+    ///
     """)
     return
 
@@ -653,7 +650,6 @@ def _(
     allbar = barax[0]
     pbar = barax[1]
     width = 0.5
-
     # create bar chart for all topics and parties
     for ite in range(len(topic_count_by_party)):
         bottom = np.sum(topic_count_by_party[:ite], axis = 0)
@@ -673,17 +669,6 @@ def _(
     plt.tight_layout()
     allbar.legend(bbox_to_anchor=(-0.5, 1.07))
     pbar
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    be aware of the bias in the graph above
-    - more candidates running + answered questionnaire -> greater representation
-    - prioritized on paper ≠ action
-    - candidates choose the amount of themes they select. selecting more themes -> greater representation
-    """)
     return
 
 
