@@ -322,69 +322,43 @@ def _(plt, postals):
 
 
 @app.cell
-def _(mo):
-    mo.md(r"""
+def _(mo, muni):
+    mo.md(rf"""
     # Age distributions
     /// details | Additional information
-    Below are bar charts of the prioritzed topics of the different parties and candidates. From the data set, it appears that candidates can choose up to five topics. This is a huge concern since ..... MANGLER
+    The box plot below shows the age distribution for all candidates in {muni.value} and all elected candidates in {muni.value}. The data only includes candidates that have chosen to write in their ages to TV2.
+
+    Outliers are represented by small circles.
+    The boxes show the 50% of ages closest to the median.
+    The line in the middle of each box shows the median, that is the value in the middle of the age distribution.
     ///
     """)
     return
 
 
 @app.cell
-def _(chosen_file, muni, np, pd, plt):
-    ages = pd.Series(chosen_file['age']).value_counts()
-
-    x = ages.index
-    y = ages.to_list()
-
+def _(chosen_file, muni, pd, plt):
+    # boksplot
     _fig, _ax = plt.subplots()
 
-    _ax.bar(x, y)
-    _ax.set_title(f"Age distribution of candidates in {muni.value}")
-    _ax.set_yticks(np.arange(0, max(y)+1,1))
-    _ax.set_xlabel("Age")
-    _ax.set_ylabel("How many candidates share the age")
+    _elecages = chosen_file.query('elected == True')
+    elecages = pd.Series(_elecages['age']).dropna()
+    allages = pd.Series(chosen_file['age']).dropna()
 
+    _ax.boxplot([allages, elecages], tick_labels=["All candidates", "Elected candidates"])
+    _ax.set_title(f'Age distribution for candidates in {muni.value}')
+    _ax.set_ylabel('Ages')
+
+    plt.tight_layout() 
     _fig
-    return (x,)
+    return allages, elecages
 
 
 @app.cell
-def _(mo, muni, x):
-    mo.md(f"""
-    ### Youngest candidate in {muni.value} is {int(min(x))} years old
-    ### Oldest candidate in {muni.value} is {int(max(x))} years old
-    """)
-    return
-
-
-@app.cell
-def _(chosen_file, muni, np, pd, plt):
-    _elected_ages = chosen_file.query('elected == True')
-
-    _ages = pd.Series(_elected_ages['age']).value_counts()
-    x_max = _ages.index
-    _y = _ages.to_list()
-
-    _fig, _ax = plt.subplots()
-
-    _ax.bar(x_max, _y)
-    _ax.set_title(f"Age distribution of elected candidates in {muni.value}")
-    _ax.set_yticks(np.arange(0, max(_y)+2,1))
-    _ax.set_xlabel("Age")
-    _ax.set_ylabel("How many candidates share the age")
-
-    _fig
-    return (x_max,)
-
-
-@app.cell
-def _(mo, muni, x_max):
+def _(allages, elecages, mo, muni):
     mo.md(rf"""
-    ### Youngest elected candidate in {muni.value} is {int(min(x_max))} years old
-    ### Oldest elected candidate in {muni.value} is {int(max(x_max))} years old
+    ### The age of candidates in {muni.value} range from {int(min(allages))} to {int(max(allages))}.
+    ### The age of elected candidates in {muni.value} range from {int(min(elecages))} to {int(max(elecages))}.
     """)
     return
 
