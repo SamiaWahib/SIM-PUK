@@ -6,17 +6,16 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _(mo):
-    mo.md(r"""
+    mo.md(rf"""
     todo
     - [ ] lad selv brugeren svare på spørgsmål og blive placeret med pca indenfor valgt tema
     - [ ] tilføj forklarende tekster
     - [ ] omskriv variable kun relevante for den egen celle til at starte med underscore
-    - [ ] dict der mapper parti bogstav til parti navn for readability?
     """)
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _():
     import marimo as mo
     import math
@@ -29,7 +28,6 @@ def _():
     import random as rand
     import glob
     import os
-
 
     mun_dan_to_eng = {
                       "Albertslund":"albertslund", 
@@ -81,8 +79,21 @@ def _():
                     'Ø': '#F7660D' # enhedslisten
     }
 
-    used = []
+    letter_name = {'A': "Socialdemokratiet",
+                'B': 'Radikale Venstre',
+                'C': 'Det konservative folkeparti',
+                'D': 'Nye borgerlige',
+                'F': 'Socialistisk Folkeparti',
+                'I': 'Liberal alliance',
+                'M': 'Moderaterne',
+                'O': 'Dansk Folkeparti',
+                'V': 'Venstre',
+                'Å': 'Alternativet',
+                'Æ': 'Danmarks demokraterne',
+                'Ø': 'Enhedslisten'
+    }
 
+    used = []
     def get_color(letter):
         # ensures consistency in giving the same color to all parties in all graphs
         if letter in party_colors.keys():
@@ -107,6 +118,7 @@ def _():
         csv,
         get_color,
         glob,
+        letter_name,
         math,
         mo,
         mun_dan_to_eng,
@@ -119,7 +131,18 @@ def _():
     )
 
 
-@app.cell(hide_code=True)
+@app.cell
+def _(get_color, letter_name, letters, mo):
+    md = "\n".join(
+        f'<span style="display:inline-block;width:35px;height:10px;background:{get_color(l)};"></span> {l} - {letter_name[l] if l in letter_name.keys() else "Lokalliste"} \n'
+        for l in letters
+    )
+
+    mo.md(md)
+    return
+
+
+@app.cell
 def _(mo, mun_dan_to_eng):
     muni = mo.ui.dropdown(mun_dan_to_eng.keys(), value="Albertslund", label="## See data from municipality:")
     muni
@@ -134,7 +157,7 @@ def _(mo, muni):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     options = ["candidates", "votes"]
     chosen_size = mo.ui.dropdown(options, value = options[0], label = "## See party size based on number of:")
@@ -196,7 +219,6 @@ def _(math, np, pd, plt):
 
     def pie_num_votes(dic, l, col):
         votes = [dic[letter][0] for letter in l]
-        #print(votes,letters)
         size = 0.6
 
         fig, ax = plt.subplots()
