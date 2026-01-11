@@ -234,6 +234,7 @@ def _(math, np, pd, plt):
 
         ax.pie(votes, radius=1, colors = col,
                wedgeprops=dict(width=size, edgecolor='w'), labels=l)
+        ax.set(title = "Party sizes by number of votes")
 
         plt.legend(
             l, loc=(-0.5,0))
@@ -532,10 +533,8 @@ def _(closest, furthest, mo):
 def _(mo):
     mo.md(r"""
     # Prioritized topics
-    kommentar
-    - de har selv bestemt hvor mange
-    - repræsentation
-    - svarer ikke til handling/hvad de stemmer
+    Candidates were asked to choose the topics most important to them from a list of topics. <BR>
+    The amount of topics chosen by a candidate differs.
     """)
     return
 
@@ -624,7 +623,7 @@ def _(chosen_num_topic, letter_name, mo, muni, top_sums, topic_party):
 @app.cell
 def _(mo):
     mo.md(r"""
-    /// details | Bias
+    /// details | Bias in graphs
     The graphs below may have a significant amount of bias.
 
     Not every candidate has chosen the same amount of prioritized topics. If a candidate choose more topics, they have a greater representation in the graphs. The same goes for parties overall.
