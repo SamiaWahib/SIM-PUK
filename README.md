@@ -44,7 +44,7 @@ This list of labels is from the column names in the .csv files.
 - a shorter and a longer pitch for themselves
 
 ## be aware of before running
-- latest scraping date: 08/12/2025
+- latest scraping date: 03/01/2026
 - the data of number of votes and the elected bool does *disappear* from the pages at times
   - we do not know the pattern, but they always come back at some point
 - there is one candidate we cannot get all of the information from 
