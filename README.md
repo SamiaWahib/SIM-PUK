@@ -4,7 +4,8 @@
 
 # Data visualisation
 - contained in the Marimo file `visualization.py`
-- run with `marimo edit visualization.py`
+- run with `marimo run visualization.py` to see the app view
+- to see or edit the source code run `marimo edit visualization.py`
   - or alternatively `marimo edit` and then choose `visualization.py`
 
 ## requirements
