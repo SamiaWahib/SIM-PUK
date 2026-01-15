@@ -2,6 +2,31 @@
 - Samia Wahib `psv745`
 - Ida Marie Grøn `zpv282`
 
+# Data visualisation
+- contained in the Marimo file `visualization.py`
+- run with `marimo edit visualization.py`
+  - or alternatively `marimo edit` and then choose `visualization.py`
+
+## requirements
+- Python 3
+- marimo (`pip install marimo`)
+- numpy (`pip install numpy`)
+- sklearn (`pip install sklearn`)
+- matplotlib (`pip install matplotlib`)
+- pandas (`pip install pandas`)
+
+# Web scraping
+- contained in the Jupyter Notebook `scraping.ipynb`
+- run with `python3 scraping.ipynb` (check requirements)
+- creates a csv file for every municipality in the `municipalities` list in code cell 1.
+  - only works for municipalities in Region Øst / east
+
+## requirements
+- Python 3
+- requests (`pip install requests`)
+- beautifulsoup4 (`pip install beautifulsoup4`)
+- lxml (`pip install lxml`)
+
 ## Data
 ### Target municipalities
 - Albertslund
@@ -46,12 +71,8 @@ This list of labels is from the column names in the .csv files.
 ## be aware of before running
 - latest scraping date: 03/01/2026
 - the data of number of votes and the elected bool does *disappear* from the pages at times
-  - we do not know the pattern, but they always come back at some point
+  - we do not know the pattern
 - there is one candidate we cannot get all of the information from 
   - it is Henning Kornbo from Furesø (ID:120497045)
   - the personal site always returns a status code 500
   - as a solution we skip any personal site returning the status code 500
-  
-### requirements
-- beautiful soup 4 (`pip install beautifulsoup4`)
-- lxml (`pip install lxml`)

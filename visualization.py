@@ -440,7 +440,6 @@ def _(chosen_topic, csv, mun_dan_to_eng, muni):
                 return 1,7
 
     parties = [row[0] for row in data[1:]]
-    #print(data[1:])
 
     if chosen_topic.value == "Alle":
         description = ""
@@ -449,11 +448,10 @@ def _(chosen_topic, csv, mun_dan_to_eng, muni):
         start, stop = get_start_stop()
         data = data[1:]
         filtered = [[parties[j]] + data[j][start:stop+1] for j in range(len(parties))] 
-    #print(filtered)
     return description, filtered, parties
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(PCA, StandardScaler, description, filtered, get_color, np, parties, plt):
     # PCA
     features = []
