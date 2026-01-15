@@ -183,7 +183,7 @@ def _(mo):
     return (chosen_size,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(math, np, pd, plt):
     def info_on_cand(file):
         parties = pd.Series(file['party'].value_counts())
@@ -196,7 +196,6 @@ def _(math, np, pd, plt):
             num = cand['votes']
             ele = 1 if cand['elected'] else 0
             if not math.isnan(num): let_dict[cand['party']][0] += num
-            #if cand['party'] == 'Ø': print(num)
             let_dict[cand['party']][1] += ele
 
         return parties, letters, let_dict
@@ -208,7 +207,7 @@ def _(math, np, pd, plt):
         # for each party, get the their corresponding color
         # return a numpy.array with elected, candidates that weren't elected, and color for each party
         for letter in l:
-            f = p[letter] # todo: rename
+            f = p[letter]
             elected = dic[letter][1]
             lst.append([elected, f-elected])
         lst = np.array(lst)
@@ -242,7 +241,7 @@ def _(math, np, pd, plt):
     return info_on_cand, nested_pie_num_cand, pie_num_votes
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(
     chosen_size,
     get_color,
@@ -268,7 +267,7 @@ def _(
     return chosen_file, letters, num_elec
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(
     chosen_size,
     get_color,
@@ -345,7 +344,9 @@ def _(chosen_file, muni, pd, plt):
 
     _elecages = chosen_file.query('elected == True')
     elecages = pd.Series(_elecages['age']).dropna()
+    elec_avg = round(elecages.mean(),1)
     allages = pd.Series(chosen_file['age']).dropna()
+    all_avg = round(allages.mean(),1)
 
     _ax.boxplot([allages, elecages], tick_labels=["All candidates", "Elected candidates"])
     _ax.set_title(f'Age distribution for candidates in {muni.value}')
@@ -353,14 +354,14 @@ def _(chosen_file, muni, pd, plt):
 
     plt.tight_layout() 
     _fig
-    return allages, elecages
+    return all_avg, allages, elec_avg, elecages
 
 
 @app.cell
-def _(allages, elecages, mo, muni):
+def _(all_avg, allages, elec_avg, elecages, mo, muni):
     mo.md(rf"""
-    ### The age of candidates in {muni.value} range from {int(min(allages))} to {int(max(allages))}.
-    ### The age of elected candidates in {muni.value} range from {int(min(elecages))} to {int(max(elecages))}.
+    ### The age of candidates in {muni.value} range from {int(min(allages))} to {int(max(allages))}. The average age is {all_avg}.
+    ### The age of elected candidates in {muni.value} range from {int(min(elecages))} to {int(max(elecages))}. The average age is {elec_avg}.
     """)
     return
 
@@ -487,8 +488,6 @@ def _(PCA, StandardScaler, description, filtered, get_color, np, parties, plt):
             plt.plot([mean_pt[0], pt[0]], [mean_pt[1], pt[1]], color=get_color(p), linewidth=0.6, alpha=0.7, zorder=1)
         plt.scatter(mean_pt[0], mean_pt[1], color=get_color(p), edgecolor='k', s=140, marker='X', zorder=3)
 
-    #plt.xlabel(f'PC1 ({pca.explained_variance_ratio_[0]:.1%})')
-    #plt.ylabel(f'PC2 ({pca.explained_variance_ratio_[1]:.1%})')
     plt.title('PCA Analysis colored by party with party means' + description)
     for p in unique_parties:
         plt.scatter([], [], color=get_color(p), label=p)
@@ -516,12 +515,12 @@ def _(np, party_means):
 
 
 @app.cell(hide_code=True)
-def _(closest, furthest, mo):
+def _(closest, furthest, letter_name, mo):
     mo.md(f"""
     /// admonition | Based on the PCA and chosen topic
 
-    Two closest parties are {closest[1]} and {closest[2]}. <BR>
-    Two furthest parties are {furthest[1]} and {furthest[2]}.
+    Two closest parties are {closest[1]} {"(" + letter_name[closest[1]] + ")" if closest[1] in letter_name.keys() else "(Lokalliste)"} and {closest[2]} {"(" + letter_name[closest[2]] + ")" if closest[2] in letter_name.keys() else "(Lokalliste)"}. <BR>
+    Two furthest parties are {furthest[1]} {"(" + letter_name[furthest[1]] + ")" if furthest[1] in letter_name.keys() else "(Lokalliste)"} and {furthest[2]} {"(" + letter_name[furthest[2]] + ")" if furthest[2] in letter_name.keys() else "(Lokalliste)"}.
     ///
     """)
     return
