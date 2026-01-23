@@ -148,7 +148,7 @@ def _(mo, mun_dan_to_eng):
 @app.cell
 def _(get_color, letter_name, letters, mo, muni, party_colors):
     md = "\n".join(
-        f'<span style="display:inline-block;width:35px;height:10px;background:{party_colors[l] if l in party_colors.keys() else get_color(l)};"></span> {l} - {letter_name[l] if l in letter_name.keys() else "Lokalliste"} \n'
+        f'<span style="display:inline-block;width:35px;height:10px;background:{party_colors[l] if l in party_colors.keys() else get_color(l)};"></span> {l} - {letter_name[l] if l in letter_name.keys() else "Local party"} \n'
         for l in sorted(letters)
     )
 
@@ -608,7 +608,7 @@ def _(chosen_num_topic, letter_name, mo, muni, top_sums, topic_party):
     ### 🥈 2. {top_sums[-2][1]}
     ### 🥉 3. {top_sums[-3][1]} 
 
-    ## Top three topics for candidates from the party: {letter_name[topic_party.value]} in {muni.value}
+    ## Top three topics for candidates from the party: {letter_name[topic_party.value] if topic_party.value in letter_name.keys() else topic_party.value + " (Local party)"} in {muni.value}
     ### 🥇 1. {chosen_num_topic[-1][1]}
     ### 🥈 2. {chosen_num_topic[-2][1]}
     ### 🥉 3. {chosen_num_topic[-3][1]}
